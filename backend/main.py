@@ -673,6 +673,7 @@ def metamask_register_start(
             detail="Invalid wallet address"
         )
 
+    # Check if wallet is already registered
     existing_wallet_user = (
         db.query(User)
         .filter(
@@ -687,6 +688,7 @@ def metamask_register_start(
             detail="This wallet is already registered"
         )
 
+    # Check if email is already registered
     existing_email_user = (
         db.query(User)
         .filter(
@@ -701,11 +703,13 @@ def metamask_register_start(
             detail="This email is already registered"
         )
 
+    # Validate date of birth
     try:
         dob = datetime.strptime(
             data.date_of_birth,
             "%Y-%m-%d"
         ).date()
+
     except ValueError:
         raise HTTPException(
             status_code=400,
@@ -720,15 +724,7 @@ def metamask_register_start(
             detail="Invalid date of birth"
         )
 
-    otp = str(
-        secrets.randbelow(900000) + 100000
-    )
-
-    expires_at = (
-        datetime.utcnow()
-        + timedelta(minutes=10)
-    )
-
+    # Find old pending registration for this wallet
     pending = (
         db.query(PendingWalletRegistration)
         .filter(
@@ -743,8 +739,14 @@ def metamask_register_start(
         pending.email = data.email
         pending.phone = data.phone
         pending.date_of_birth = dob
-        pending.otp = otp
-        pending.otp_expires = expires_at
+
+        # Registration OTP is disabled
+        pending.otp = None
+        pending.otp_expires = None
+
+        # Allow registration to continue directly
+        pending.email_verified = True
+
     else:
         pending = PendingWalletRegistration(
             wallet_address=wallet.lower(),
@@ -752,27 +754,20 @@ def metamask_register_start(
             email=data.email,
             phone=data.phone,
             date_of_birth=dob,
-            otp=otp,
-            otp_expires=expires_at
+            otp=None,
+            otp_expires=None,
+            email_verified=True
         )
 
         db.add(pending)
 
     db.commit()
 
-    # Use your existing email sending function here.
-    # Replace send_email(...) below only if your project
-    # uses a different function name.
-    send_email_otp(
-    data.email,
-    "Your EVoTE Registration OTP",
-    otp
-)
-
     return {
-        "message": "OTP sent successfully",
+        "message": "Registration details saved successfully",
         "email": data.email,
-        "wallet_address": wallet
+        "wallet_address": wallet,
+        "verified": True
     }
 
 @app.post("/auth/metamask/register/verify-otp")

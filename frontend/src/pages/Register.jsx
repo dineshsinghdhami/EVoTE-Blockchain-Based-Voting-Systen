@@ -158,8 +158,6 @@ function Register() {
     date_of_birth: "",
   });
 
-  const [otp, setOtp] = useState("");
-
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -361,8 +359,8 @@ function Register() {
       }
 
       setStatus(
-        "Sending verification OTP..."
-      );
+  "Saving registration details..."
+);
 
       const response = await fetch(
         `${API_URL}/auth/metamask/register/start`,
@@ -398,10 +396,10 @@ function Register() {
       }
 
       setStatus(
-        "OTP sent to your email."
-      );
+  "Details saved successfully."
+);
 
-      setStep(3);
+setStep(3);
 
     } catch (err) {
       console.error(err);
@@ -415,68 +413,7 @@ function Register() {
     }
   };
 
-  // ========================================================
-  // 3. VERIFY EMAIL OTP
-  // ========================================================
-
-  const verifyOtp = async (e) => {
-    e.preventDefault();
-
-    setError("");
-    setStatus("");
-    setLoading(true);
-
-    try {
-      if (!otp) {
-        throw new Error(
-          "Enter the OTP from your email."
-        );
-      }
-
-      setStatus("Verifying OTP...");
-
-      const response = await fetch(
-        `${API_URL}/auth/metamask/register/verify-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            email: form.email,
-            otp,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.detail ||
-            "OTP verification failed."
-        );
-      }
-
-      setStatus(
-        "Email verified successfully."
-      );
-
-      setStep(4);
-
-    } catch (err) {
-      console.error(err);
-
-      setError(
-        err?.message ||
-          "OTP verification failed."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   // ========================================================
   // 4. GASLESS BLOCKCHAIN REGISTRATION
   // ========================================================
@@ -802,7 +739,7 @@ const prepareResponse =
             marginBottom: "22px",
           }}
         >
-          {[1, 2, 3, 4].map((item) => (
+          {[1, 2, 3].map((item) => (
             <div
               key={item}
               style={{
@@ -1084,101 +1021,19 @@ const prepareResponse =
               }}
             >
               {loading
-                ? "Sending OTP..."
-                : "Continue"}
+                ? "Saving..."
+: "Continue"}
             </button>
           </form>
         )}
 
-        {/* ============================== */}
-        {/* STEP 3 - EMAIL OTP */}
-        {/* ============================== */}
-
-        {step === 3 && (
-          <form onSubmit={verifyOtp}>
-            <div
-              style={{
-                marginBottom: "18px",
-              }}
-            >
-              <h3
-                style={{
-                  margin: "0 0 7px 0",
-                  fontSize: "17px",
-                }}
-              >
-                Verify Your Email
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#d1d5db",
-                  fontSize: "13px",
-                  lineHeight: "1.6",
-                }}
-              >
-                Enter the verification code sent
-                to
-              </p>
-
-              <p
-                style={{
-                  margin: "4px 0 0 0",
-                  color: "#bfdbfe",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  wordBreak: "break-all",
-                }}
-              >
-                {form.email}
-              </p>
-            </div>
-
-            <label style={labelStyle}>
-              Verification Code
-            </label>
-
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) =>
-                setOtp(e.target.value)
-              }
-              style={{
-                ...inputStyle,
-                textAlign: "center",
-                letterSpacing: "4px",
-                fontWeight: "700",
-              }}
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...buttonStyle,
-
-                cursor: loading
-                  ? "not-allowed"
-                  : "pointer",
-
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading
-                ? "Verifying..."
-                : "Verify Email"}
-            </button>
-          </form>
-        )}
+        
 
         {/* ============================== */}
         {/* STEP 4 - COMPLETE */}
         {/* ============================== */}
 
-        {step === 4 && (
+        {step === 3 && (
           <>
             <div
               style={{
@@ -1201,7 +1056,7 @@ const prepareResponse =
                   fontSize: "13px",
                 }}
               >
-                Your email has been verified.
+                Confirm your registration with MetaMask.
               </p>
             </div>
 
@@ -1225,9 +1080,11 @@ const prepareResponse =
                 marginBottom: "18px",
               }}
             >
-              ✓ Email verified successfully.
-              <br />
-              ✓ No Sepolia ETH is required.
+              ✓ Registration details are ready.
+<br />
+✓ Confirm the registration with MetaMask.
+<br />
+✓ No Sepolia ETH is required.
               <br />
               ✓ EVoTE sponsors the blockchain
               transaction.
