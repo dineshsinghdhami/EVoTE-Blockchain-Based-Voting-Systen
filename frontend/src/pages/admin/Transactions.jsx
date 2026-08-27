@@ -237,6 +237,11 @@ function Transactions() {
     setIsRefreshing,
   ] = useState(false);
 
+  const [currentPage, setCurrentPage] =
+  useState(1);
+
+const transactionsPerPage = 8;
+
 
   // =========================================================
   // REFRESH
@@ -317,6 +322,28 @@ function Transactions() {
       : dateA - dateB;
   });
 
+  // =========================================================
+// PAGINATION
+// =========================================================
+
+const totalPages = Math.ceil(
+  sortedTransactions.length /
+    transactionsPerPage
+);
+
+const startIndex =
+  (currentPage - 1) *
+  transactionsPerPage;
+
+const endIndex =
+  startIndex +
+  transactionsPerPage;
+
+const paginatedTransactions =
+  sortedTransactions.slice(
+    startIndex,
+    endIndex
+  );
 
   // =========================================================
   // UI
@@ -384,14 +411,10 @@ function Transactions() {
                 }
 
                 onClick={() => {
-                  setSortOrder(
-                    "newest"
-                  );
-
-                  setShowFilter(
-                    false
-                  );
-                }}
+  setSortOrder("newest");
+  setCurrentPage(1);
+  setShowFilter(false);
+}}
               >
                 Newest
               </button>
@@ -603,7 +626,7 @@ function Transactions() {
 
       ) : (
 
-        sortedTransactions.map(
+        paginatedTransactions.map(
           (tx) => {
 
             const txHash =
@@ -1027,6 +1050,111 @@ function Transactions() {
 
       )}
 
+      {sortedTransactions.length > 0 && (
+  <div
+    style={{
+      marginTop: "14px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "6px",
+    }}
+  >
+    <button
+      type="button"
+      disabled={currentPage === 1}
+      onClick={() =>
+        setCurrentPage((page) =>
+          Math.max(page - 1, 1)
+        )
+      }
+      style={{
+        border: "none",
+        background: "transparent",
+        color:
+          currentPage === 1
+            ? "#4b5563"
+            : "#94a3b8",
+        fontSize: "18px",
+        cursor:
+          currentPage === 1
+            ? "default"
+            : "pointer",
+        padding: "4px 6px",
+      }}
+    >
+      ‹
+    </button>
+
+    {Array.from(
+      { length: totalPages },
+      (_, index) => {
+        const pageNumber = index + 1;
+
+        return (
+          <button
+            key={pageNumber}
+            type="button"
+            onClick={() =>
+              setCurrentPage(pageNumber)
+            }
+            style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "6px",
+              border:
+                currentPage === pageNumber
+                  ? "1px solid rgba(56,189,248,0.35)"
+                  : "1px solid transparent",
+              background:
+                currentPage === pageNumber
+                  ? "rgba(56,189,248,0.10)"
+                  : "transparent",
+              color:
+                currentPage === pageNumber
+                  ? "#38bdf8"
+                  : "#94a3b8",
+              fontSize: "12px",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            {pageNumber}
+          </button>
+        );
+      }
+    )}
+
+    <button
+      type="button"
+      disabled={currentPage >= totalPages}
+      onClick={() =>
+        setCurrentPage((page) =>
+          Math.min(
+            page + 1,
+            totalPages
+          )
+        )
+      }
+      style={{
+        border: "none",
+        background: "transparent",
+        color:
+          currentPage >= totalPages
+            ? "#4b5563"
+            : "#94a3b8",
+        fontSize: "18px",
+        cursor:
+          currentPage >= totalPages
+            ? "default"
+            : "pointer",
+        padding: "4px 6px",
+      }}
+    >
+      ›
+    </button>
+  </div>
+)}
     </section>
   );
 }

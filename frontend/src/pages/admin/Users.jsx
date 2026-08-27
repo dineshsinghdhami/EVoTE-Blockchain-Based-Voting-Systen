@@ -262,35 +262,34 @@ function Users() {
                     PROFILE
                 ============================================ */}
 
-                <div className="avatar">
-
-                  {user.profile_picture ? (
-
-                    <img
-                      src={`${API_URL}/${user.profile_picture}`}
-
-                      alt={
-                        user.full_name
-                      }
-
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
-                    />
-
-                  ) : (
-
-                    user.full_name
-                      ?.charAt(0)
-                      ?.toUpperCase() ||
-                    "U"
-
-                  )}
-
-                </div>
+                <div
+  className="avatar"
+  style={{
+    width: "52px",
+    height: "52px",
+    minWidth: "52px",
+    borderRadius: "50%",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  {user.profile_picture ? (
+    <img
+      src={`${API_URL}/${user.profile_picture}`}
+      alt={user.full_name}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block",
+      }}
+    />
+  ) : (
+    user.full_name?.charAt(0)?.toUpperCase() || "U"
+  )}
+</div>
 
 
                 {/* ============================================
