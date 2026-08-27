@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FiFilter,
   FiExternalLink,
@@ -7,7 +7,6 @@ import {
 } from "react-icons/fi";
 
 import { useAdmin } from "../../context/AdminContext";
-
 
 // ============================================================
 // NORMALIZE ETHEREUM TRANSACTION HASH
@@ -85,6 +84,46 @@ function Institutions() {
 
   const [formError, setFormError] =
     useState("");
+
+
+  // ==========================================================
+  // KEYBOARD SUPPORT FOR CONFIRMATION MODAL
+  // Enter = Create, Escape = Cancel
+  // ==========================================================
+
+  useEffect(() => {
+    if (
+      !confirmBox ||
+      confirmBox.title !==
+        "Create Institution"
+    ) {
+      return;
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        closeConfirm(true);
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeConfirm(false);
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [confirmBox, closeConfirm]);
 
 
   // ==========================================================

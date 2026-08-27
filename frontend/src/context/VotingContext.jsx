@@ -161,10 +161,11 @@ export function VotingProvider({ children }) {
   // =====================================================
 
   const profileImage =
-    user?.profile_picture
-      ? `${API_URL}/${user.profile_picture}`
-      : null;
-
+  user?.profile_picture
+    ? `${API_URL}/${user.profile_picture}?v=${
+        user.profile_picture_version || ""
+      }`
+    : null;
 
   // =====================================================
   // CONTRACT

@@ -70,22 +70,51 @@ function AdminProfile() {
     setMessage,
   } = useAdmin();
 
+
   const [uploading, setUploading] =
+    useState(false);
+
+  const [previewImage, setPreviewImage] =
+    useState(null);
+
+  const [successPopup, setSuccessPopup] =
     useState(false);
 
 
   async function uploadProfilePicture(e) {
-    const file = e.target.files?.[0];
+    const file =
+      e.target.files?.[0];
 
-    if (!file || !adminUser?.id) {
+    if (
+      !file ||
+      !adminUser?.id
+    ) {
       return;
     }
 
+
+    // =========================================================
+    // SHOW SELECTED IMAGE IMMEDIATELY
+    // =========================================================
+
+    const localPreview =
+      URL.createObjectURL(file);
+
+    setPreviewImage(localPreview);
+
+
     const token =
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("token");
+      localStorage.getItem(
+        "access_token"
+      ) ||
+      localStorage.getItem(
+        "token"
+      );
+
 
     if (!token) {
+      setPreviewImage(null);
+
       setMessage(
         "Login token not found. Please log in again."
       );
@@ -93,46 +122,69 @@ function AdminProfile() {
       return;
     }
 
-    const formData = new FormData();
+
+    const formData =
+      new FormData();
 
     formData.append(
       "file",
       file
     );
 
+
     try {
       setUploading(true);
 
-      const res = await axios.post(
-        `${API_URL}/upload-profile/${adminUser.id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data",
 
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
+      const res =
+        await axios.post(
+          `${API_URL}/upload-profile/${adminUser.id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
 
       const updatedUser = {
-        ...adminUser,
-        profile_picture:
-          res.data.profile_picture,
-      };
+  ...adminUser,
 
-      setAdminUser(updatedUser);
+  profile_picture:
+    res.data.profile_picture,
+
+  profile_picture_version:
+    Date.now(),
+};
+
+      // ========================================================
+      // UPDATE ADMIN USER
+      // ========================================================
+
+      setAdminUser(
+        updatedUser
+      );
+
 
       localStorage.setItem(
         "user",
-        JSON.stringify(updatedUser)
+        JSON.stringify(
+          updatedUser
+        )
       );
 
-      setMessage(
-        "Profile picture updated successfully."
-      );
+
+      // ========================================================
+      // SHOW SUCCESS POPUP
+      // ========================================================
+
+      setSuccessPopup(true);
+
 
     } catch (err) {
       console.error(
@@ -140,41 +192,78 @@ function AdminProfile() {
         err
       );
 
+
+      // Restore previous profile image
+      setPreviewImage(null);
+
+
       const errorMessage =
         err?.response?.data?.detail ||
         "Failed to upload profile picture.";
 
-      setMessage(errorMessage);
+
+      setMessage(
+        errorMessage
+      );
+
 
     } finally {
       setUploading(false);
 
-      // Allows choosing the same file again
+      // Allows selecting same file again
       e.target.value = "";
     }
   }
 
 
-  const profileImage =
-    adminUser?.profile_picture
-      ? `${API_URL}/${adminUser.profile_picture}`
-      : null;
+  // ============================================================
+  // PROFILE IMAGE
+  // ============================================================
 
+  const profileImage =
+    previewImage ||
+    (
+      adminUser?.profile_picture
+        ? `${API_URL}/${adminUser.profile_picture}`
+        : null
+    );
+
+
+  // ============================================================
+  // WALLET
+  // ============================================================
 
   const wallet =
     account ||
     adminUser?.wallet_address ||
-    localStorage.getItem("walletAddress") ||
-    localStorage.getItem("adminWallet");
+    localStorage.getItem(
+      "walletAddress"
+    ) ||
+    localStorage.getItem(
+      "adminWallet"
+    );
 
+
+  // ============================================================
+  // ROLE
+  // ============================================================
 
   const formattedRole =
-    adminUser?.role === "superadmin"
+    adminUser?.role ===
+    "superadmin"
       ? "Super Admin"
-      : adminUser?.role === "admin"
-        ? "Admin"
-        : adminUser?.role || "Admin";
 
+      : adminUser?.role ===
+        "admin"
+        ? "Admin"
+
+        : adminUser?.role ||
+          "Admin";
+
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   return (
     <div
@@ -184,112 +273,380 @@ function AdminProfile() {
         boxSizing: "border-box",
       }}
     >
-      {/* PAGE HEADER */}
+
+
+      {/* =======================================================
+          SUCCESS POPUP
+      ======================================================= */}
+
+      {successPopup && (
+
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            padding: "20px",
+
+            background:
+              "rgba(0, 0, 0, 0.55)",
+
+            backdropFilter:
+              "blur(3px)",
+          }}
+        >
+
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "290px",
+
+              padding: "20px",
+
+              borderRadius: "12px",
+
+              background:
+                "#202020",
+
+              border:
+                "1px solid rgba(34,197,94,0.35)",
+
+              boxShadow:
+                "0 18px 50px rgba(0,0,0,0.55)",
+
+              textAlign: "center",
+            }}
+          >
+
+
+            {/* SUCCESS ICON */}
+
+            <div
+              style={{
+                width: "42px",
+                height: "42px",
+
+                margin:
+                  "0 auto 12px",
+
+                borderRadius:
+                  "50%",
+
+                display:
+                  "flex",
+
+                alignItems:
+                  "center",
+
+                justifyContent:
+                  "center",
+
+                background:
+                  "rgba(34,197,94,0.12)",
+
+                border:
+                  "1px solid rgba(34,197,94,0.35)",
+
+                color:
+                  "#22c55e",
+
+                fontSize:
+                  "22px",
+
+                fontWeight:
+                  "800",
+              }}
+            >
+              ✓
+            </div>
+
+
+            {/* TITLE */}
+
+            <h3
+              style={{
+                margin:
+                  "0 0 7px",
+
+                color:
+                  "#ffffff",
+
+                fontSize:
+                  "16px",
+              }}
+            >
+              Profile Updated
+            </h3>
+
+
+            {/* MESSAGE */}
+
+            <p
+              style={{
+                margin:
+                  "0 0 16px",
+
+                color:
+                  "#cbd5e1",
+
+                fontSize:
+                  "12px",
+
+                lineHeight:
+                  "1.5",
+              }}
+            >
+              Profile picture updated successfully.
+            </p>
+
+
+            {/* OK BUTTON */}
+
+            <button
+              type="button"
+
+              onClick={() =>
+                setSuccessPopup(false)
+              }
+
+              style={{
+                minWidth:
+                  "80px",
+
+                padding:
+                  "8px 20px",
+
+                border:
+                  "none",
+
+                borderRadius:
+                  "7px",
+
+                background:
+                  "#1687a3",
+
+                color:
+                  "#ffffff",
+
+                fontSize:
+                  "12px",
+
+                fontWeight:
+                  "700",
+
+                cursor:
+                  "pointer",
+              }}
+            >
+              OK
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* =======================================================
+          PAGE HEADER
+      ======================================================= */}
+
       <div
         style={{
-          marginBottom: "24px",
+          marginBottom:
+            "24px",
         }}
       >
+
         <h1
           style={{
             margin: 0,
-            fontSize: "30px",
-            color: "#ffffff",
+            fontSize:
+              "30px",
+            color:
+              "#ffffff",
           }}
         >
           My Profile
         </h1>
 
+
         <p
           style={{
-            margin: "8px 0 0",
-            color: "#aeb6c2",
-            fontSize: "15px",
+            margin:
+              "8px 0 0",
+
+            color:
+              "#aeb6c2",
+
+            fontSize:
+              "15px",
           }}
         >
           View and manage your administrator
           account information.
         </p>
+
       </div>
 
 
-      {/* MAIN PROFILE CARD */}
+      {/* =======================================================
+          MAIN PROFILE CARD
+      ======================================================= */}
+
       <div
         style={{
-          background: "#1f1f1f",
-          border: "1px solid #363636",
-          borderRadius: "16px",
-          overflow: "hidden",
+          background:
+            "#1f1f1f",
+
+          border:
+            "1px solid #363636",
+
+          borderRadius:
+            "16px",
+
+          overflow:
+            "hidden",
         }}
       >
 
-        {/* PROFILE HEADER */}
+
+        {/* =====================================================
+            PROFILE HEADER
+        ===================================================== */}
+
         <div
           style={{
-            padding: "30px",
-            display: "flex",
-            alignItems: "center",
-            gap: "22px",
+            padding:
+              "30px",
+
+            display:
+              "flex",
+
+            alignItems:
+              "center",
+
+            gap:
+              "22px",
+
             borderBottom:
               "1px solid #363636",
-            flexWrap: "wrap",
+
+            flexWrap:
+              "wrap",
           }}
         >
 
+
           {/* PROFILE PHOTO */}
+
           <div
             style={{
-              width: "100px",
-              height: "100px",
-              minWidth: "100px",
-              borderRadius: "50%",
-              overflow: "hidden",
-              background: "#2b2b2b",
+              width:
+                "100px",
+
+              height:
+                "100px",
+
+              minWidth:
+                "100px",
+
+              borderRadius:
+                "50%",
+
+              overflow:
+                "hidden",
+
+              background:
+                "#2b2b2b",
+
               border:
                 "2px solid #4a4a4a",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+
+              display:
+                "flex",
+
+              alignItems:
+                "center",
+
+              justifyContent:
+                "center",
             }}
           >
+
             {profileImage ? (
+
               <img
-                src={profileImage}
+                src={
+                  profileImage
+                }
+
                 alt="Admin Profile"
+
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
+                  width:
+                    "100%",
+
+                  height:
+                    "100%",
+
+                  objectFit:
+                    "cover",
+
+                  display:
+                    "block",
                 }}
               />
+
             ) : (
+
               <FiUser
                 size={42}
+
                 style={{
-                  color: "#aeb6c2",
+                  color:
+                    "#aeb6c2",
                 }}
               />
+
             )}
+
           </div>
 
 
           {/* NAME AND ROLE */}
+
           <div>
+
             <h2
               style={{
                 margin: 0,
-                color: "#ffffff",
-                fontSize: "25px",
+
+                color:
+                  "#ffffff",
+
+                fontSize:
+                  "25px",
               }}
             >
               {adminUser?.full_name ||
                 "Administrator"}
             </h2>
 
+
             <p
               style={{
-                margin: "6px 0 14px",
-                color: "#aeb6c2",
+                margin:
+                  "6px 0 14px",
+
+                color:
+                  "#aeb6c2",
               }}
             >
               {formattedRole}
@@ -297,60 +654,105 @@ function AdminProfile() {
 
 
             {/* CHANGE PHOTO */}
+
             <label
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                background: "#1687a3",
-                color: "#ffffff",
-                padding: "9px 14px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: uploading
-                  ? "not-allowed"
-                  : "pointer",
+                display:
+                  "inline-flex",
+
+                alignItems:
+                  "center",
+
+                gap:
+                  "8px",
+
+                background:
+                  "#1687a3",
+
+                color:
+                  "#ffffff",
+
+                padding:
+                  "9px 14px",
+
+                borderRadius:
+                  "8px",
+
+                fontSize:
+                  "14px",
+
+                fontWeight:
+                  "600",
+
+                cursor:
+                  uploading
+                    ? "not-allowed"
+                    : "pointer",
+
                 opacity:
-                  uploading ? 0.6 : 1,
+                  uploading
+                    ? 0.6
+                    : 1,
               }}
             >
+
               <FiCamera />
+
 
               {uploading
                 ? "Uploading..."
                 : "Change Photo"}
 
+
               <input
                 type="file"
+
                 accept="
                   image/png,
                   image/jpeg,
                   image/jpg,
                   image/webp
                 "
+
                 onChange={
                   uploadProfilePicture
                 }
-                disabled={uploading}
+
+                disabled={
+                  uploading
+                }
+
                 hidden
               />
+
             </label>
+
           </div>
+
         </div>
 
 
-        {/* PERSONAL INFORMATION */}
+        {/* =====================================================
+            PERSONAL INFORMATION
+        ===================================================== */}
+
         <div
           style={{
-            padding: "30px",
+            padding:
+              "30px",
           }}
         >
+
           <h3
             style={{
-              margin: "0 0 20px",
-              color: "#ffffff",
-              fontSize: "19px",
+              margin:
+                "0 0 20px",
+
+              color:
+                "#ffffff",
+
+              fontSize:
+                "19px",
             }}
           >
             Personal Information
@@ -359,38 +761,64 @@ function AdminProfile() {
 
           <div
             style={{
-              display: "grid",
+              display:
+                "grid",
 
               gridTemplateColumns:
                 "repeat(auto-fit, minmax(280px, 1fr))",
 
-              gap: "16px",
+              gap:
+                "16px",
             }}
           >
 
+
             <InfoCard
-              icon={<FiUser />}
+              icon={
+                <FiUser />
+              }
+
               label="Full Name"
+
               value={
                 adminUser?.full_name
               }
             />
 
+
             <InfoCard
-              icon={<FiMail />}
+              icon={
+                <FiMail />
+              }
+
               label="Email Address"
-              value={adminUser?.email}
+
+              value={
+                adminUser?.email
+              }
             />
 
+
             <InfoCard
-              icon={<FiPhone />}
+              icon={
+                <FiPhone />
+              }
+
               label="Phone Number"
-              value={adminUser?.phone}
+
+              value={
+                adminUser?.phone
+              }
             />
 
+
             <InfoCard
-              icon={<FiCalendar />}
+              icon={
+                <FiCalendar />
+              }
+
               label="Date of Birth"
+
               value={
                 formatDateOfBirthWithAge(
                   adminUser?.date_of_birth
@@ -398,21 +826,36 @@ function AdminProfile() {
               }
             />
 
+
             <InfoCard
-              icon={<FiShield />}
+              icon={
+                <FiShield />
+              }
+
               label="Account Role"
-              value={formattedRole}
+
+              value={
+                formattedRole
+              }
             />
 
           </div>
 
 
-          {/* BLOCKCHAIN WALLET */}
+          {/* ===================================================
+              BLOCKCHAIN WALLET
+          =================================================== */}
+
           <h3
             style={{
-              margin: "30px 0 20px",
-              color: "#ffffff",
-              fontSize: "19px",
+              margin:
+                "30px 0 20px",
+
+              color:
+                "#ffffff",
+
+              fontSize:
+                "19px",
             }}
           >
             Blockchain Wallet
@@ -421,37 +864,64 @@ function AdminProfile() {
 
           <div
             style={{
-              background: "#252525",
+              background:
+                "#252525",
+
               border:
                 "1px solid #363636",
-              borderRadius: "12px",
-              padding: "18px",
-              display: "flex",
+
+              borderRadius:
+                "12px",
+
+              padding:
+                "18px",
+
+              display:
+                "flex",
+
               justifyContent:
                 "space-between",
-              alignItems: "center",
-              gap: "20px",
-              flexWrap: "wrap",
+
+              alignItems:
+                "center",
+
+              gap:
+                "20px",
+
+              flexWrap:
+                "wrap",
             }}
           >
 
+
             <div>
+
               <div
                 style={{
-                  color: "#9ca3af",
-                  fontSize: "13px",
-                  marginBottom: "7px",
+                  color:
+                    "#9ca3af",
+
+                  fontSize:
+                    "13px",
+
+                  marginBottom:
+                    "7px",
                 }}
               >
                 Connected Wallet Address
               </div>
 
+
               <div
                 style={{
-                  color: wallet
-                    ? "#34d399"
-                    : "#ffffff",
-                  fontSize: "14px",
+                  color:
+                    wallet
+                      ? "#34d399"
+                      : "#ffffff",
+
+                  fontSize:
+                    "14px",
+
                   wordBreak:
                     "break-all",
                 }}
@@ -459,47 +929,69 @@ function AdminProfile() {
                 {wallet ||
                   "No wallet connected"}
               </div>
+
             </div>
 
 
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                display:
+                  "flex",
 
-                color: wallet
-                  ? "#34d399"
-                  : "#f59e0b",
+                alignItems:
+                  "center",
 
-                fontWeight: "600",
-                fontSize: "14px",
+                gap:
+                  "8px",
+
+                color:
+                  wallet
+                    ? "#34d399"
+                    : "#f59e0b",
+
+                fontWeight:
+                  "600",
+
+                fontSize:
+                  "14px",
               }}
             >
 
+
               <span
                 style={{
-                  width: "9px",
-                  height: "9px",
-                  borderRadius: "50%",
+                  width:
+                    "9px",
 
-                  background: wallet
-                    ? "#34d399"
-                    : "#f59e0b",
+                  height:
+                    "9px",
+
+                  borderRadius:
+                    "50%",
+
+                  background:
+                    wallet
+                      ? "#34d399"
+                      : "#f59e0b",
 
                   display:
                     "inline-block",
                 }}
               />
 
+
               {wallet
                 ? "Connected"
                 : "Not Connected"}
 
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
@@ -510,31 +1002,66 @@ function InfoCard({
   label,
   value,
 }) {
+
   return (
+
     <div
       style={{
-        background: "#252525",
-        border: "1px solid #363636",
-        borderRadius: "12px",
-        padding: "18px",
-        display: "flex",
-        gap: "14px",
-        alignItems: "center",
+        background:
+          "#252525",
+
+        border:
+          "1px solid #363636",
+
+        borderRadius:
+          "12px",
+
+        padding:
+          "18px",
+
+        display:
+          "flex",
+
+        gap:
+          "14px",
+
+        alignItems:
+          "center",
       }}
     >
 
+
       <div
         style={{
-          width: "40px",
-          height: "40px",
-          minWidth: "40px",
-          borderRadius: "9px",
-          background: "#173842",
-          color: "#42c5e8",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "18px",
+          width:
+            "40px",
+
+          height:
+            "40px",
+
+          minWidth:
+            "40px",
+
+          borderRadius:
+            "9px",
+
+          background:
+            "#173842",
+
+          color:
+            "#42c5e8",
+
+          display:
+            "flex",
+
+          alignItems:
+            "center",
+
+          justifyContent:
+            "center",
+
+          fontSize:
+            "18px",
         }}
       >
         {icon}
@@ -546,29 +1073,46 @@ function InfoCard({
           minWidth: 0,
         }}
       >
+
         <div
           style={{
-            color: "#9ca3af",
-            fontSize: "12px",
-            marginBottom: "5px",
+            color:
+              "#9ca3af",
+
+            fontSize:
+              "12px",
+
+            marginBottom:
+              "5px",
           }}
         >
           {label}
         </div>
 
+
         <div
           style={{
-            color: "#ffffff",
-            fontSize: "15px",
-            fontWeight: "600",
-            wordBreak: "break-word",
+            color:
+              "#ffffff",
+
+            fontSize:
+              "15px",
+
+            fontWeight:
+              "600",
+
+            wordBreak:
+              "break-word",
           }}
         >
-          {value || "Not provided"}
+          {value ||
+            "Not provided"}
         </div>
+
       </div>
 
     </div>
+
   );
 }
 

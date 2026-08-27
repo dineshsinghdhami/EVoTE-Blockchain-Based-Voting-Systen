@@ -104,7 +104,10 @@ function AdminLayout() {
 
   const adminProfileImage =
   adminUser?.profile_picture
-    ? `${API_URL}/${adminUser.profile_picture}`
+    ? `${API_URL}/${adminUser.profile_picture}?v=${
+        adminUser.profile_picture_version ||
+        ""
+      }`
     : null;
 
   const location = useLocation();
