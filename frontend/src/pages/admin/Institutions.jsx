@@ -317,12 +317,8 @@ function Institutions() {
         }
       >
         {isSyncing
-          ? String(message)
-              .toLowerCase()
-              .includes("synchronizing")
-            ? "Synchronizing..."
-            : "Creating..."
-          : "Create Institution"}
+  ? "Creating..."
+  : "Create Institution"}
       </button>
 
 
@@ -624,20 +620,21 @@ function Institutions() {
             {/* DONE */}
 
             <button
-              type="button"
+  type="button"
+  autoFocus
 
-              onClick={() =>
-                setSuccessResult(
-                  null
-                )
-              }
+  onClick={() =>
+    setSuccessResult(
+      null
+    )
+  }
 
-              style={
-                doneButtonStyle
-              }
-            >
-              Done
-            </button>
+  style={
+    doneButtonStyle
+  }
+>
+  Done
+</button>
 
           </div>
 

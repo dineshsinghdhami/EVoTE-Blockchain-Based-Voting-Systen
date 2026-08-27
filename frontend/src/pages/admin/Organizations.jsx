@@ -655,14 +655,8 @@ function Organizations() {
             }
           >
             {isSyncing
-              ? String(message)
-                  .toLowerCase()
-                  .includes(
-                    "synchronizing"
-                  )
-                ? "Synchronizing..."
-                : "Creating..."
-              : "Create Organization"}
+  ? "Creating..."
+  : "Create Organization"}
           </button>
 
 
@@ -733,21 +727,22 @@ function Organizations() {
 
 
                   <button
-                    type="button"
+  type="button"
+  autoFocus
 
-                    onClick={() =>
-                      closeConfirm(
-                        true
-                      )
-                    }
+  onClick={() =>
+    closeConfirm(
+      true
+    )
+  }
 
-                    style={
-                      confirmButtonStyle
-                    }
-                  >
-                    {confirmBox.confirmText ||
-                      "Create"}
-                  </button>
+  style={
+    confirmButtonStyle
+  }
+>
+  {confirmBox.confirmText ||
+    "Create"}
+</button>
 
                 </div>
 
@@ -1000,21 +995,22 @@ function Organizations() {
 
                 {/* DONE */}
 
-                <button
-                  type="button"
+<button
+  type="button"
+  autoFocus
 
-                  onClick={() =>
-                    setSuccessResult(
-                      null
-                    )
-                  }
+  onClick={() =>
+    setSuccessResult(
+      null
+    )
+  }
 
-                  style={
-                    doneButtonStyle
-                  }
-                >
-                  Done
-                </button>
+  style={
+    doneButtonStyle
+  }
+>
+  Done
+</button>
 
               </div>
 

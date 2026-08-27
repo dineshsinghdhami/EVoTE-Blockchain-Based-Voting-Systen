@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import GlobalToast from "../components/GlobalToast";
 
 import {
   FiGrid,
@@ -424,12 +425,11 @@ function AdminLayout() {
 </header>
 
 
-        {/* MESSAGE */}
-        {message && (
-          <div className="message-box">
-            {message}
-          </div>
-        )}
+        {/* GLOBAL SMALL TOAST */}
+<GlobalToast
+  message={message}
+  onClose={() => setMessage("")}
+/>
 
 
         {/* CONTEXT SELECTOR */}

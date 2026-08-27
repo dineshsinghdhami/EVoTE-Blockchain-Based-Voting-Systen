@@ -63,14 +63,53 @@ export function AdminProvider({ children }) {
   // must not sit on screen forever. Auto-dismiss a few seconds after each
   // new message is set.
   useEffect(() => {
-    if (!message) return;
+  if (!message) {
+    return;
+  }
 
-    const timer = setTimeout(() => {
+  const text =
+    String(message)
+      .trim()
+      .toLowerCase();
+
+  // =====================================================
+  // DO NOT AUTO-HIDE ACTIVE TRANSACTION MESSAGES
+  //
+  // These messages must remain visible for exactly as long
+  // as isSyncing remains true.
+  // createInstitution/createOrganization/createPost will
+  // clear them when the transaction is actually finished.
+  // =====================================================
+
+  const isTransactionProgress =
+    text.includes("creating institution") ||
+    text.includes("creating organization") ||
+    text.includes("creating election") ||
+    text.includes("creating election post") ||
+    text.includes("approving") ||
+    text.includes("rejecting");
+
+  if (
+    isSyncing ||
+    isTransactionProgress
+  ) {
+    return;
+  }
+
+  // =====================================================
+  // NORMAL NON-TRANSACTION MESSAGES
+  // These may disappear automatically.
+  // =====================================================
+
+  const timer =
+    setTimeout(() => {
       setMessage("");
     }, 6000);
 
-    return () => clearTimeout(timer);
-  }, [message]);
+  return () =>
+    clearTimeout(timer);
+
+}, [message, isSyncing]);
 
   const askConfirm = ({ title, message, confirmText = "Continue" }) => {
     return new Promise((resolve) => {
@@ -98,16 +137,27 @@ export function AdminProvider({ children }) {
       err,
       fallback = "Something went wrong."
     ) => {
-      const friendlyMessage =
-        getFriendlyApiError(
-          err,
-          fallback
-        );
+      console.error(
+        "Admin API/Application Error:",
+        err
+      );
 
-      // No HTTP response means FastAPI/server could not
-      // be reached at all. Show this as a popup instead
-      // of putting "Network Error" in the global banner.
-      if (!err?.response) {
+      const isAxiosError =
+        axios.isAxiosError(err);
+
+      const backendUnreachable =
+        isAxiosError &&
+        !err?.response;
+
+      // =====================================================
+      // REAL NETWORK / BACKEND CONNECTION FAILURE
+      // =====================================================
+
+      if (backendUnreachable) {
+        const friendlyMessage =
+          "EVoTE is currently unavailable. " +
+          "Please check the backend connection and try again.";
+
         setMessage("");
 
         setErrorModal({
@@ -117,15 +167,48 @@ export function AdminProvider({ children }) {
           message:
             friendlyMessage,
         });
-      } else {
-        // Normal backend validation/application errors can
-        // continue using the normal status banner.
+
+        return friendlyMessage;
+      }
+
+      // =====================================================
+      // BACKEND RETURNED A PROPER HTTP ERROR
+      // =====================================================
+
+      if (
+        isAxiosError &&
+        err?.response
+      ) {
+        const friendlyMessage =
+          err?.response?.data?.detail ||
+          fallback;
+
         setMessage(
           friendlyMessage
         );
+
+        return friendlyMessage;
       }
 
-      return friendlyMessage;
+      // =====================================================
+      // FRONTEND JAVASCRIPT / APPLICATION ERROR
+      // Do NOT incorrectly call this a backend outage.
+      // =====================================================
+
+      const appMessage =
+        err?.message ||
+        fallback;
+
+      console.error(
+        "Frontend application error:",
+        appMessage
+      );
+
+      setMessage(
+        appMessage
+      );
+
+      return appMessage;
     },
     []
   );
@@ -667,19 +750,7 @@ const winner =
       // never looks frozen.
       // =====================================================
 
-      let showCreating = true;
-
       setMessage("Creating institution...");
-
-      progressTimer = setInterval(() => {
-        showCreating = !showCreating;
-
-        setMessage(
-          showCreating
-            ? "Creating institution..."
-            : "Synchronizing blockchain..."
-        );
-      }, 1500);
 
       const res = await axios.post(
         `${API_URL}/blockchain/create-institution`,
@@ -708,8 +779,8 @@ const winner =
       }
 
       setMessage(
-        "Synchronizing blockchain..."
-      );
+  "Creating institution..."
+);
 
       const newInstitution = {
         id: institutions.length + 1,
@@ -743,21 +814,30 @@ const winner =
         ]
       );
 
-      // Refresh actual blockchain + dashboard + history data
-      // before showing success.
-      await loadInstitutions();
-      await loadDashboardStats();
-      await loadTransactions();
+      // Transaction is already confirmed on blockchain.
+// Stop the creating state immediately.
+setInstitutionName("");
+setMessage("");
+setIsSyncing(false);
 
-      setInstitutionName("");
-      setMessage("");
-      setIsSyncing(false);
+// Refresh secondary data quietly in the background.
+// Do NOT keep the user waiting for these.
+Promise.allSettled([
+  loadInstitutions(),
+  loadDashboardStats(),
+  loadTransactions(),
+]).catch((error) => {
+  console.error(
+    "Background institution refresh failed:",
+    error
+  );
+});
 
-      return {
-        success: true,
-        name: createdInstitutionName,
-        txHash: transactionHash,
-      };
+return {
+  success: true,
+  name: createdInstitutionName,
+  txHash: transactionHash,
+};
 
     } catch (err) {
       if (progressTimer) {
@@ -926,19 +1006,7 @@ const winner =
       // LIVE PROGRESS MESSAGE
       // =====================================================
 
-      let showCreating = true;
-
       setMessage("Creating organization...");
-
-      progressTimer = setInterval(() => {
-        showCreating = !showCreating;
-
-        setMessage(
-          showCreating
-            ? "Creating organization..."
-            : "Synchronizing blockchain..."
-        );
-      }, 1500);
 
       const res = await axios.post(
         `${API_URL}/blockchain/create-organization`,
@@ -975,8 +1043,8 @@ const winner =
       }
 
       setMessage(
-        "Synchronizing blockchain..."
-      );
+  "Creating organization..."
+);
 
       const newOrg = {
         id: organizations.length + 1,
@@ -1043,26 +1111,34 @@ const winner =
         ]
       );
 
-      await loadOrganizations(
-        selectedInstitutionId
-      );
+      // Transaction is already confirmed on blockchain.
+// Stop the creating state immediately.
+setOrganizationName("");
+setMessage("");
+setIsSyncing(false);
 
-      await loadInstitutions();
-      await loadDashboardStats();
-      await loadTransactions();
+// Refresh secondary data quietly in the background.
+Promise.allSettled([
+  loadOrganizations(
+    selectedInstitutionId
+  ),
+  loadInstitutions(),
+  loadDashboardStats(),
+  loadTransactions(),
+]).catch((error) => {
+  console.error(
+    "Background organization refresh failed:",
+    error
+  );
+});
 
-      setOrganizationName("");
-      setMessage("");
-      setIsSyncing(false);
-
-      return {
-        success: true,
-        name: createdOrganizationName,
-        institutionName:
-          createdInstitutionName,
-        txHash:
-          transactionHash,
-      };
+return {
+  success: true,
+  name: createdOrganizationName,
+  institutionName:
+    createdInstitutionName,
+  txHash: transactionHash,
+};
 
     } catch (err) {
       if (progressTimer) {
@@ -1430,21 +1506,9 @@ const winner =
 
       setIsSyncing(true);
 
-      let showCreating = true;
-
       setMessage(
-        "Creating election post..."
-      );
-
-      progressTimer = setInterval(() => {
-        showCreating = !showCreating;
-
-        setMessage(
-          showCreating
-            ? "Creating election post..."
-            : "Synchronizing blockchain..."
-        );
-      }, 1500);
+  "Creating election post..."
+);
 
 
       // =====================================================
@@ -1518,8 +1582,8 @@ const winner =
       }
 
       setMessage(
-        "Synchronizing blockchain..."
-      );
+  "Creating election post..."
+);
 
       const newTx = {
         id:
@@ -1557,58 +1621,55 @@ const winner =
         ]
       );
 
-      await loadPosts(
-        selectedInstitutionId,
-        selectedOrganizationId
-      );
+      // Transaction is already confirmed on blockchain.
+// Stop the Creating... state immediately.
 
-      await loadOrganizations(
-        selectedInstitutionId
-      );
+setPostTitle("");
+setSeatLimit("");
+setMaxCandidateCount("");
+setMinCandidateAge("");
+setMaxCandidateAge("");
+setCandidateRegistrationStart("");
+setCandidateRegistrationEnd("");
+setPostStartDate("");
+setPostEndDate("");
 
-      await loadDashboardStats();
-      await loadTransactions();
-
-
-      // =====================================================
-      // CLEAR FORM
-      // =====================================================
-
-      setPostTitle("");
-      setSeatLimit("");
-      setMaxCandidateCount("");
-      setMinCandidateAge("");
-      setMaxCandidateAge("");
-
-      setCandidateRegistrationStart("");
-      setCandidateRegistrationEnd("");
-
-      setPostStartDate("");
-      setPostEndDate("");
-
-      setMessage("");
-      setIsSyncing(false);
+setMessage("");
+setIsSyncing(false);
 
 
-      // =====================================================
-      // RETURN DATA FOR SUCCESS POPUP
-      // =====================================================
+// Refresh secondary admin data quietly in background.
+// Do not keep the success popup/button waiting.
+Promise.allSettled([
+  loadPosts(
+    selectedInstitutionId,
+    selectedOrganizationId
+  ),
 
-      return {
-        success: true,
+  loadOrganizations(
+    selectedInstitutionId
+  ),
 
-        title:
-          createdPostTitle,
+  loadDashboardStats(),
 
-        institutionName:
-          createdInstitutionName,
+  loadTransactions(),
+]).catch((error) => {
+  console.error(
+    "Background election refresh failed:",
+    error
+  );
+});
 
-        organizationName:
-          createdOrganizationName,
 
-        txHash:
-          transactionHash,
-      };
+return {
+  success: true,
+  title: createdPostTitle,
+  institutionName:
+    createdInstitutionName,
+  organizationName:
+    createdOrganizationName,
+  txHash: transactionHash,
+};
 
     } catch (err) {
       if (progressTimer) {
@@ -2231,16 +2292,17 @@ async function loadAllCandidateRequests() {
                 textAlign: "center",
               }}
             >
-              No blockchain transaction was created.
+              Transaction status could not be confirmed.
             </div>
 
             <button
-              type="button"
-              onClick={closeErrorModal}
-              style={backendErrorCloseButtonStyle}
-            >
-              Close
-            </button>
+  type="button"
+  autoFocus
+  onClick={closeErrorModal}
+  style={backendErrorCloseButtonStyle}
+>
+  Close
+</button>
 
           </div>
         </div>

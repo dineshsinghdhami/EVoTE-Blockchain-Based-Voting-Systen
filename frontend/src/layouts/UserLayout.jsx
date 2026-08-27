@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, Link, Outlet } from "react-router-dom";
+
 import {
   FiHome,
   FiCheckSquare,
@@ -14,16 +15,18 @@ import {
   FiLogOut,
 } from "react-icons/fi";
 import { useVoting } from "../context/VotingContext";
+import GlobalToast from "../components/GlobalToast";
 
 function UserLayout() {
   const {
-    user,
-    account,
-    connectWallet,
-    message,
-    profileImage,
-    logout,
-  } = useVoting();
+  user,
+  account,
+  connectWallet,
+  message,
+  setMessage,
+  profileImage,
+  logout,
+} = useVoting();
 
   const [showLogoutModal, setShowLogoutModal] =
     useState(false);
@@ -381,14 +384,13 @@ function UserLayout() {
 
 
         {/* ===================================================
-            GLOBAL MESSAGE
-        =================================================== */}
+    GLOBAL SMALL TOAST
+=================================================== */}
 
-        {message && (
-          <div className="user-message">
-            {message}
-          </div>
-        )}
+<GlobalToast
+  message={message}
+  onClose={() => setMessage("")}
+/>
 
 
         {/* ===================================================

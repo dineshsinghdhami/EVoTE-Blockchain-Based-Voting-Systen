@@ -1,15 +1,24 @@
-import { useEffect, useState } from "react";
 import {
-  FiFilter,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  FiClock,
   FiExternalLink,
+  FiFilter,
   FiRefreshCw,
+  FiUsers,
 } from "react-icons/fi";
 
-import { useAdmin } from "../../context/AdminContext";
+import {
+  useAdmin,
+} from "../../context/AdminContext";
 
 
 // ============================================================
-// TRANSACTION HASH HELPER
+// TRANSACTION HASH
 // ============================================================
 
 function normalizeTxHash(txHash) {
@@ -20,7 +29,9 @@ function normalizeTxHash(txHash) {
   const hash =
     String(txHash).trim();
 
-  if (hash.startsWith("0x")) {
+  if (
+    hash.startsWith("0x")
+  ) {
     return hash;
   }
 
@@ -29,64 +40,77 @@ function normalizeTxHash(txHash) {
 
 
 // ============================================================
-// ELECTION LOADING CARD
+// TRANSACTION DATE
 // ============================================================
 
-function ElectionLoadingCard() {
+function getTransactionTime(tx) {
+  if (!tx?.created_at) {
+    return 0;
+  }
+
+  const raw =
+    tx.created_at;
+
+  // Number timestamp
+  if (
+    typeof raw === "number"
+  ) {
+    // Seconds
+    if (
+      raw < 100000000000
+    ) {
+      return raw * 1000;
+    }
+
+    // Milliseconds
+    return raw;
+  }
+
+  const parsed =
+    new Date(raw).getTime();
+
+  return Number.isNaN(parsed)
+    ? 0
+    : parsed;
+}
+
+
+// ============================================================
+// LOADING ROW
+// ============================================================
+
+function ElectionLoadingRow() {
   return (
-    <div className="row-card all-election-loading-card">
+    <div className="admin-election-row">
 
-      <div className="all-election-loading-content">
+      <div className="admin-election-status-area">
 
-        <div className="all-election-loading-heading">
-          <div className="all-election-skeleton all-election-skeleton-title" />
-
-          <div className="all-election-skeleton all-election-skeleton-pill" />
-        </div>
-
-
-        <div className="all-election-loading-grid">
-
-          <div>
-            <div className="all-election-skeleton all-election-skeleton-label" />
-
-            <div className="all-election-skeleton all-election-skeleton-value" />
-          </div>
-
-
-          <div>
-            <div className="all-election-skeleton all-election-skeleton-label" />
-
-            <div className="all-election-skeleton all-election-skeleton-value medium" />
-          </div>
-
-
-          <div>
-            <div className="all-election-skeleton all-election-skeleton-label" />
-
-            <div className="all-election-skeleton all-election-skeleton-value small" />
-          </div>
-
-
-          <div>
-            <div className="all-election-skeleton all-election-skeleton-label" />
-
-            <div className="all-election-skeleton all-election-skeleton-value long" />
-          </div>
-
-
-          <div>
-            <div className="all-election-skeleton all-election-skeleton-label" />
-
-            <div className="all-election-skeleton all-election-skeleton-value long" />
-          </div>
-
-        </div>
-
-
-        <div className="all-election-skeleton all-election-skeleton-link" />
+        <div className="admin-election-skeleton admin-election-skeleton-status" />
 
       </div>
+
+
+      <div className="admin-election-main">
+
+        <div className="admin-election-skeleton admin-election-skeleton-title" />
+
+        <div className="admin-election-skeleton admin-election-skeleton-location" />
+
+
+        <div className="admin-election-meta">
+
+          <div className="admin-election-skeleton admin-election-skeleton-meta" />
+
+          <div className="admin-election-skeleton admin-election-skeleton-meta" />
+
+          <div className="admin-election-skeleton admin-election-skeleton-date" />
+
+        </div>
+
+      </div>
+
+
+      <div className="admin-election-skeleton admin-election-skeleton-button" />
 
     </div>
   );
@@ -94,7 +118,7 @@ function ElectionLoadingCard() {
 
 
 // ============================================================
-// ALL ELECTIONS PAGE
+// ALL ELECTIONS
 // ============================================================
 
 function AllElections() {
@@ -136,54 +160,6 @@ function AllElections() {
 
 
   // ==========================================================
-  // FORMAT DATE
-  // ==========================================================
-
-  const formatDate =
-    (value) => {
-
-      if (
-        !value ||
-        Number(value) <= 0
-      ) {
-        return "N/A";
-      }
-
-      return new Date(
-        Number(value) * 1000
-      ).toLocaleString();
-    };
-
-
-  // ==========================================================
-  // REFRESH ELECTIONS
-  // ==========================================================
-
-  const handleRefreshElections =
-    async () => {
-
-      if (
-        isRefreshing ||
-        dashboardStatsLoading
-      ) {
-        return;
-      }
-
-      try {
-
-        setIsRefreshing(true);
-
-        await loadDashboardStats();
-
-      } finally {
-
-        setIsRefreshing(false);
-
-      }
-    };
-
-
-  // ==========================================================
   // CURRENT TIME
   // ==========================================================
 
@@ -194,87 +170,114 @@ function AllElections() {
 
 
   // ==========================================================
-  // ELECTION STATUS
+  // DATE
   // ==========================================================
 
-  const getElectionStatus =
-    (post) => {
+  function formatDate(timestamp) {
+    if (
+      !timestamp ||
+      Number(timestamp) <= 0
+    ) {
+      return "N/A";
+    }
 
-      const startDate =
-        Number(
-          post.startDate
-        );
-
-      const endDate =
-        Number(
-          post.endDate
-        );
-
-
-      if (
-        startDate <= 0 ||
-        endDate <= 0
-      ) {
-        return "unknown";
+    return new Date(
+      Number(timestamp) * 1000
+    ).toLocaleString(
+      [],
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
       }
-
-
-      if (
-        currentTime <
-        startDate
-      ) {
-        return "upcoming";
-      }
-
-
-      if (
-        currentTime >=
-          startDate &&
-        currentTime <=
-          endDate
-      ) {
-        return "active";
-      }
-
-
-      return "closed";
-    };
+    );
+  }
 
 
   // ==========================================================
-  // FIND CREATE-ELECTION TRANSACTION
+  // STATUS
   // ==========================================================
 
-  const getElectionTransaction =
-    (post) => {
+  function getElectionStatus(
+    post
+  ) {
+    const startDate =
+      Number(
+        post.startDate || 0
+      );
 
-      const title =
-        String(
-          post.title || ""
-        )
-          .trim()
-          .toLowerCase();
-
-
-      const institution =
-        String(
-          post.institutionName || ""
-        )
-          .trim()
-          .toLowerCase();
+    const endDate =
+      Number(
+        post.endDate || 0
+      );
 
 
-      const organization =
-        String(
-          post.organizationName || ""
-        )
-          .trim()
-          .toLowerCase();
+    if (
+      startDate <= 0 ||
+      endDate <= 0
+    ) {
+      return "unknown";
+    }
 
 
-      return transactions.find(
+    if (
+      currentTime <
+      startDate
+    ) {
+      return "upcoming";
+    }
+
+
+    if (
+      currentTime >=
+        startDate &&
+      currentTime <=
+        endDate
+    ) {
+      return "active";
+    }
+
+
+    return "closed";
+  }
+
+
+  // ==========================================================
+  // FIND CREATE TRANSACTION
+  // ==========================================================
+
+  function getElectionTransaction(
+    post
+  ) {
+    const title =
+      String(
+        post.title || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const institution =
+      String(
+        post.institutionName || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const organization =
+      String(
+        post.organizationName || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    const matchingTransactions =
+      transactions.filter(
         (tx) => {
-
           const action =
             String(
               tx.action || ""
@@ -312,62 +315,242 @@ function AllElections() {
 
           if (
             institution &&
-            action.includes(
+            !action.includes(
               institution
-            ) &&
+            )
+          ) {
+            return false;
+          }
+
+
+          if (
             organization &&
-            action.includes(
+            !action.includes(
               organization
             )
           ) {
-            return true;
+            return false;
           }
 
 
           return true;
         }
       );
-    };
+
+
+    if (
+      matchingTransactions.length === 0
+    ) {
+      return null;
+    }
+
+
+    // Most recent matching transaction
+    return [
+      ...matchingTransactions,
+    ].sort(
+      (a, b) =>
+        getTransactionTime(b) -
+        getTransactionTime(a)
+    )[0];
+  }
 
 
   // ==========================================================
-  // FILTER + SORT
+  // ELECTIONS + TRANSACTION DATA
   // ==========================================================
 
-  const filteredPosts =
-    allPostsList
-      .filter(
+  const elections =
+    useMemo(() => {
+      return allPostsList.map(
         (post) => {
-
-          const status =
-            getElectionStatus(
+          const tx =
+            getElectionTransaction(
               post
             );
 
+          return {
+            ...post,
+
+            status:
+              getElectionStatus(
+                post
+              ),
+
+            transaction:
+              tx,
+
+            createdTime:
+              getTransactionTime(
+                tx
+              ),
+          };
+        }
+      );
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      allPostsList,
+      transactions,
+      currentTime,
+    ]);
+
+
+  // ==========================================================
+  // FILTER + NEWEST CREATED FIRST
+  // ==========================================================
+
+  const filteredPosts =
+    useMemo(() => {
+
+      const filtered =
+        elections.filter(
+          (post) => {
+            if (
+              filterStatus ===
+              "all"
+            ) {
+              return true;
+            }
+
+            return (
+              post.status ===
+              filterStatus
+            );
+          }
+        );
+
+
+      return [
+        ...filtered,
+      ].sort(
+        (a, b) => {
+
+          // ===============================================
+          // 1. PRIMARY:
+          // Transaction creation time
+          // ===============================================
 
           if (
-            filterStatus ===
-            "all"
+            b.createdTime !==
+            a.createdTime
           ) {
-            return true;
+            return (
+              b.createdTime -
+              a.createdTime
+            );
+          }
+
+
+          // ===============================================
+          // 2. FALLBACK:
+          // Newer blockchain hierarchy first
+          // ===============================================
+
+          if (
+            Number(
+              b.institutionId
+            ) !==
+            Number(
+              a.institutionId
+            )
+          ) {
+            return (
+              Number(
+                b.institutionId
+              ) -
+              Number(
+                a.institutionId
+              )
+            );
+          }
+
+
+          if (
+            Number(
+              b.organizationId
+            ) !==
+            Number(
+              a.organizationId
+            )
+          ) {
+            return (
+              Number(
+                b.organizationId
+              ) -
+              Number(
+                a.organizationId
+              )
+            );
           }
 
 
           return (
-            status ===
-            filterStatus
+            Number(
+              b.id || b.postId || 0
+            ) -
+            Number(
+              a.id || a.postId || 0
+            )
           );
         }
-      )
-      .sort(
-        (a, b) =>
-          Number(
-            b.startDate || 0
-          ) -
-          Number(
-            a.startDate || 0
-          )
       );
+
+    }, [
+      elections,
+      filterStatus,
+    ]);
+
+
+  // ==========================================================
+  // COUNTS
+  // ==========================================================
+
+  const activeCount =
+    elections.filter(
+      (post) =>
+        post.status ===
+        "active"
+    ).length;
+
+
+  const upcomingCount =
+    elections.filter(
+      (post) =>
+        post.status ===
+        "upcoming"
+    ).length;
+
+
+  const closedCount =
+    elections.filter(
+      (post) =>
+        post.status ===
+        "closed"
+    ).length;
+
+
+  // ==========================================================
+  // REFRESH
+  // ==========================================================
+
+  async function handleRefreshElections() {
+    if (
+      isRefreshing ||
+      dashboardStatsLoading
+    ) {
+      return;
+    }
+
+    try {
+      setIsRefreshing(true);
+
+      await loadDashboardStats();
+
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
 
   // ==========================================================
@@ -384,249 +567,172 @@ function AllElections() {
   // ==========================================================
 
   return (
-    <section
-      className="panel all-elections-panel"
-    >
+    <section className="panel admin-all-elections-page">
+
 
       {/* =====================================================
           HEADER
       ===================================================== */}
 
-      <div className="election-header">
+      <div className="admin-elections-header">
 
         <div>
 
-          <h3>
+          <h2>
             All Elections
-          </h3>
+          </h2>
 
-          <p
-            className="muted"
-
-            style={{
-              marginTop: "5px",
-              marginBottom: 0,
-              fontSize: "13px",
-            }}
-          >
-            View all blockchain election posts and their current voting status.
+          <p>
+            View and manage all blockchain election posts.
+            Newly created elections appear first.
           </p>
 
         </div>
 
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-          }}
+        <button
+          type="button"
+
+          className="secondary-btn"
+
+          onClick={
+            handleRefreshElections
+          }
+
+          disabled={
+            electionsLoading
+          }
         >
 
-          {/* REFRESH */}
-
-          <button
-            className="secondary-btn"
-
-            type="button"
-
-            onClick={
-              handleRefreshElections
-            }
-
-            disabled={
+          <FiRefreshCw
+            className={
               electionsLoading
+                ? "admin-election-refresh spinning"
+                : "admin-election-refresh"
             }
+          />
 
-            style={{
-              display:
-                "inline-flex",
+          {electionsLoading
+            ? "Refreshing..."
+            : "Refresh Elections"}
 
-              alignItems:
-                "center",
-
-              gap:
-                "7px",
-
-              cursor:
-                electionsLoading
-                  ? "not-allowed"
-                  : "pointer",
-
-              opacity:
-                electionsLoading
-                  ? 0.7
-                  : 1,
-            }}
-          >
-            <FiRefreshCw
-              className={
-                electionsLoading
-                  ? "all-election-refresh-icon spinning"
-                  : "all-election-refresh-icon"
-              }
-            />
-
-            {electionsLoading
-              ? "Refreshing Elections..."
-              : "Refresh Elections"}
-          </button>
-
-
-          {/* FILTER */}
-
-          <div className="filter-box">
-
-            <button
-              className="filter-btn"
-
-              disabled={
-                electionsLoading
-              }
-
-              onClick={() =>
-                setShowFilter(
-                  !showFilter
-                )
-              }
-
-              style={{
-                opacity:
-                  electionsLoading
-                    ? 0.6
-                    : 1,
-
-                cursor:
-                  electionsLoading
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              <FiFilter />
-
-              Filter
-            </button>
-
-
-            {showFilter &&
-            !electionsLoading && (
-
-              <div className="filter-menu">
-
-                <button
-                  className={
-                    filterStatus ===
-                    "all"
-                      ? "active"
-                      : ""
-                  }
-
-                  onClick={() => {
-
-                    setFilterStatus(
-                      "all"
-                    );
-
-                    setShowFilter(
-                      false
-                    );
-                  }}
-                >
-                  All
-                </button>
-
-
-                <button
-                  className={
-                    filterStatus ===
-                    "upcoming"
-                      ? "active"
-                      : ""
-                  }
-
-                  onClick={() => {
-
-                    setFilterStatus(
-                      "upcoming"
-                    );
-
-                    setShowFilter(
-                      false
-                    );
-                  }}
-                >
-                  Upcoming
-                </button>
-
-
-                <button
-                  className={
-                    filterStatus ===
-                    "active"
-                      ? "active"
-                      : ""
-                  }
-
-                  onClick={() => {
-
-                    setFilterStatus(
-                      "active"
-                    );
-
-                    setShowFilter(
-                      false
-                    );
-                  }}
-                >
-                  Active
-                </button>
-
-
-                <button
-                  className={
-                    filterStatus ===
-                    "closed"
-                      ? "active"
-                      : ""
-                  }
-
-                  onClick={() => {
-
-                    setFilterStatus(
-                      "closed"
-                    );
-
-                    setShowFilter(
-                      false
-                    );
-                  }}
-                >
-                  Closed
-                </button>
-
-              </div>
-
-            )}
-
-          </div>
-
-        </div>
+        </button>
 
       </div>
 
 
       {/* =====================================================
-          LOADING ELECTIONS
+          FILTER BAR
+      ===================================================== */}
+
+      <div className="admin-election-filter-bar">
+
+        <button
+          type="button"
+
+          className={
+            filterStatus === "all"
+              ? "admin-election-filter-btn active"
+              : "admin-election-filter-btn"
+          }
+
+          onClick={() =>
+            setFilterStatus(
+              "all"
+            )
+          }
+        >
+          All
+
+          <span>
+            {elections.length}
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+
+          className={
+            filterStatus === "active"
+              ? "admin-election-filter-btn active"
+              : "admin-election-filter-btn"
+          }
+
+          onClick={() =>
+            setFilterStatus(
+              "active"
+            )
+          }
+        >
+          Active
+
+          <span>
+            {activeCount}
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+
+          className={
+            filterStatus === "upcoming"
+              ? "admin-election-filter-btn active"
+              : "admin-election-filter-btn"
+          }
+
+          onClick={() =>
+            setFilterStatus(
+              "upcoming"
+            )
+          }
+        >
+          Upcoming
+
+          <span>
+            {upcomingCount}
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+
+          className={
+            filterStatus === "closed"
+              ? "admin-election-filter-btn active"
+              : "admin-election-filter-btn"
+          }
+
+          onClick={() =>
+            setFilterStatus(
+              "closed"
+            )
+          }
+        >
+          Closed
+
+          <span>
+            {closedCount}
+          </span>
+        </button>
+
+      </div>
+
+
+      {/* =====================================================
+          ELECTION LIST
       ===================================================== */}
 
       {electionsLoading ? (
 
-        <div className="all-election-loading-list">
+        <div className="admin-election-list">
 
-          {[1, 2, 3].map(
+          {[1, 2, 3, 4].map(
             (item) => (
 
-              <ElectionLoadingCard
+              <ElectionLoadingRow
                 key={item}
               />
 
@@ -638,70 +744,25 @@ function AllElections() {
       ) : filteredPosts.length ===
         0 ? (
 
-        /* =====================================================
-           REAL EMPTY STATE
-        ===================================================== */
+        <div className="admin-election-empty">
 
-        <div
-          style={{
-            marginTop:
-              "18px",
-
-            padding:
-              "22px",
-
-            border:
-              "1px dashed #475569",
-
-            borderRadius:
-              "10px",
-
-            color:
-              "#94a3b8",
-          }}
-        >
           {filterStatus === "all"
             ? "No elections found."
             : `No ${filterStatus} elections found.`}
+
         </div>
 
       ) : (
 
-        /* =====================================================
-           ELECTION LIST
-        ===================================================== */
-
-        <div
-          style={{
-            display:
-              "grid",
-
-            gap:
-              "14px",
-
-            marginTop:
-              "18px",
-          }}
-        >
+        <div className="admin-election-list">
 
           {filteredPosts.map(
             (post) => {
 
-              const status =
-                getElectionStatus(
-                  post
-                );
-
-
-              const tx =
-                getElectionTransaction(
-                  post
-                );
-
-
               const txHash =
                 normalizeTxHash(
-                  tx?.tx_hash
+                  post.transaction
+                    ?.tx_hash
                 );
 
 
@@ -714,169 +775,106 @@ function AllElections() {
               return (
 
                 <div
-                  className="row-card"
+                  className="admin-election-row"
 
-                  key={`${post.institutionId}-${post.organizationId}-${post.id}`}
-
-                  style={{
-                    alignItems:
-                      "flex-start",
-                  }}
+                  key={
+                    `${post.institutionId}-${post.organizationId}-${post.id}`
+                  }
                 >
 
-                  {/* LEFT */}
 
-                  <div
-                    style={{
-                      flex: 1,
-                    }}
-                  >
+                  {/* STATUS */}
 
-                    {/* TITLE + STATUS */}
+                  <div className="admin-election-status-area">
 
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        alignItems:
-                          "center",
-
-                        gap:
-                          "10px",
-
-                        flexWrap:
-                          "wrap",
-
-                        marginBottom:
-                          "12px",
-                      }}
+                    <span
+                      className={
+                        `admin-election-status ${post.status}`
+                      }
                     >
 
-                      <b
-                        style={{
-                          fontSize:
-                            "18px",
-                        }}
-                      >
-                        {post.title}
-                      </b>
+                      {post.status ===
+                      "active"
+                        ? "Active"
+                        : post.status ===
+                          "upcoming"
+                        ? "Upcoming"
+                        : post.status ===
+                          "closed"
+                        ? "Closed"
+                        : "Unknown"}
+
+                    </span>
+
+                  </div>
 
 
-                      {status ===
-                        "upcoming" && (
+                  {/* MAIN */}
 
-                        <span className="pill upcoming">
-                          Upcoming
-                        </span>
+                  <div className="admin-election-main">
 
-                      )}
-
-
-                      {status ===
-                        "active" && (
-
-                        <span className="pill green">
-                          Active
-                        </span>
-
-                      )}
+                    <h3>
+                      {post.title}
+                    </h3>
 
 
-                      {status ===
-                        "closed" && (
+                    <p className="admin-election-location">
 
-                        <span className="pill">
-                          Closed
-                        </span>
+                      {post.institutionName ||
+                        "Unknown Institution"}
 
-                      )}
+                      <span>
+                        •
+                      </span>
+
+                      {post.organizationName ||
+                        "Unknown Organization"}
+
+                    </p>
 
 
-                      {status ===
-                        "unknown" && (
+                    <div className="admin-election-meta">
 
-                        <span className="pill">
-                          Unknown
-                        </span>
+                      <span>
+                        <FiUsers />
 
-                      )}
+                        {post.candidateCount ??
+                          0}{" "}
+                        candidates
+                      </span>
+
+
+                      <span>
+                        Seats:{" "}
+
+                        {post.seatLimit ??
+                          "N/A"}
+                      </span>
+
+
+                      <span>
+                        <FiClock />
+
+                        {post.status ===
+                        "upcoming"
+                          ? `Starts ${formatDate(
+                              post.startDate
+                            )}`
+                          : `Ends ${formatDate(
+                              post.endDate
+                            )}`}
+                      </span>
 
                     </div>
 
-
-                    {/* INFORMATION */}
-
-                    <div
-                      style={{
-                        display:
-                          "grid",
-
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(190px, 1fr))",
-
-                        gap:
-                          "12px 22px",
-                      }}
-                    >
-
-                      <ElectionInfo
-                        label="Institution"
-
-                        value={
-                          post.institutionName ||
-                          "N/A"
-                        }
-                      />
+                  </div>
 
 
-                      <ElectionInfo
-                        label="Organization"
+                  {/* ETHERSCAN */}
 
-                        value={
-                          post.organizationName ||
-                          "N/A"
-                        }
-                      />
+                  <div className="admin-election-action-area">
 
-
-                      <ElectionInfo
-                        label="Candidates"
-
-                        value={
-                          post.candidateCount ??
-                          0
-                        }
-                      />
-
-
-                      <ElectionInfo
-                        label="Voting Start"
-
-                        value={
-                          formatDate(
-                            post.startDate
-                          )
-                        }
-                      />
-
-
-                      <ElectionInfo
-                        label="Voting End"
-
-                        value={
-                          formatDate(
-                            post.endDate
-                          )
-                        }
-                      />
-
-                    </div>
-
-
-                    {/* ETHERSCAN */}
-
-                    {etherscanUrl && (
+                    {etherscanUrl ? (
 
                       <a
                         href={
@@ -887,40 +885,25 @@ function AllElections() {
 
                         rel="noopener noreferrer"
 
-                        style={{
-                          display:
-                            "inline-flex",
-
-                          alignItems:
-                            "center",
-
-                          gap:
-                            "6px",
-
-                          marginTop:
-                            "14px",
-
-                          color:
-                            "#38bdf8",
-
-                          fontSize:
-                            "12px",
-
-                          fontWeight:
-                            "700",
-
-                          textDecoration:
-                            "none",
-                        }}
+                        className="admin-election-action"
                       >
+
                         <FiExternalLink />
 
-                        View on Sepolia Etherscan
+                        Etherscan
+
                       </a>
+
+                    ) : (
+
+                      <span className="admin-election-no-tx">
+                        No Tx
+                      </span>
 
                     )}
 
                   </div>
+
 
                 </div>
 
@@ -933,64 +916,6 @@ function AllElections() {
       )}
 
     </section>
-  );
-}
-
-
-// ============================================================
-// SMALL DISPLAY COMPONENT
-// ============================================================
-
-function ElectionInfo({
-  label,
-  value,
-}) {
-  return (
-
-    <div>
-
-      <div
-        style={{
-          color:
-            "#94a3b8",
-
-          fontSize:
-            "11px",
-
-          fontWeight:
-            "800",
-
-          textTransform:
-            "uppercase",
-
-          letterSpacing:
-            "0.04em",
-
-          marginBottom:
-            "4px",
-        }}
-      >
-        {label}
-      </div>
-
-
-      <div
-        style={{
-          color:
-            "#e2e8f0",
-
-          fontSize:
-            "13px",
-
-          lineHeight:
-            "1.5",
-        }}
-      >
-        {value}
-      </div>
-
-    </div>
-
   );
 }
 

@@ -883,14 +883,8 @@ function Posts() {
             }}
           >
             {isSyncing
-              ? String(message)
-                  .toLowerCase()
-                  .includes(
-                    "synchronizing"
-                  )
-                ? "Synchronizing..."
-                : "Creating..."
-              : "Create Election Post"}
+  ? "Creating..."
+  : "Create Election Post"}
           </button>
 
         </div>
@@ -1163,19 +1157,22 @@ function Posts() {
               </button>
 
               <button
-                type="button"
-                onClick={() =>
-                  closeConfirm(
-                    true
-                  )
-                }
-                style={
-                  confirmButtonStyle
-                }
-              >
-                {confirmBox.confirmText ||
-                  "Create"}
-              </button>
+  type="button"
+  autoFocus
+
+  onClick={() =>
+    closeConfirm(
+      true
+    )
+  }
+
+  style={
+    confirmButtonStyle
+  }
+>
+  {confirmBox.confirmText ||
+    "Create"}
+</button>
             </div>
 
           </div>
@@ -1327,18 +1324,21 @@ function Posts() {
 
 
             <button
-              type="button"
-              onClick={() =>
-                setSuccessResult(
-                  null
-                )
-              }
-              style={
-                doneButtonStyle
-              }
-            >
-              Done
-            </button>
+  type="button"
+  autoFocus
+
+  onClick={() =>
+    setSuccessResult(
+      null
+    )
+  }
+
+  style={
+    doneButtonStyle
+  }
+>
+  Done
+</button>
 
           </div>
 
