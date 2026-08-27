@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Link, Outlet } from "react-router-dom";
 
 import {
@@ -13,34 +13,35 @@ import {
   FiSidebar,
   FiList,
   FiLogOut,
+  FiGithub,
+  FiLinkedin,
+  FiYoutube,
+  FiFacebook,
+  FiInstagram,
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
+
 import { useVoting } from "../context/VotingContext";
 import GlobalToast from "../components/GlobalToast";
 
 function UserLayout() {
   const {
-  user,
-  account,
-  connectWallet,
-  message,
-  setMessage,
-  profileImage,
-  logout,
-} = useVoting();
+    user,
+    account,
+    connectWallet,
+    message,
+    setMessage,
+    profileImage,
+    logout,
+  } = useVoting();
 
-  const [showLogoutModal, setShowLogoutModal] =
-    useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
-
-  const [collapsed, setCollapsed] =
-    useState(
-      () =>
-        localStorage.getItem(
-          "user_sidebar_collapsed"
-        ) === "1"
-    );
+  const [collapsed, setCollapsed] = useState(
+    () =>
+      localStorage.getItem("user_sidebar_collapsed") === "1"
+  );
 
   useEffect(() => {
     localStorage.setItem(
@@ -49,158 +50,98 @@ function UserLayout() {
     );
   }, [collapsed]);
 
-  const walletShort =
-    account
-      ? account.slice(0, 6) +
-        "..." +
-        account.slice(-4)
-      : "Not Connected";
-
-  // =========================================================
-  // SIDEBAR NAVIGATION
-  // =========================================================
+  const walletShort = account
+    ? `${account.slice(0, 6)}...${account.slice(-4)}`
+    : "Connect Wallet";
 
   const navItems = [
     {
       to: "/user",
-      label: "Overview",
-      icon: (
-        <FiHome className="side-icon" />
-      ),
+      label: "Main Dashboard",
+      icon: <FiHome />,
       end: true,
     },
-
     {
       to: "/user/elections",
       label: "All Elections",
-      icon: (
-        <FiList className="side-icon" />
-      ),
+      icon: <FiList />,
     },
-
     {
       to: "/user/request",
       label: "Request Candidate",
-      icon: (
-        <FiUserPlus className="side-icon" />
-      ),
+      icon: <FiUserPlus />,
     },
-
     {
       to: "/user/vote",
       label: "Vote",
-      icon: (
-        <FiCheckSquare className="side-icon" />
-      ),
+      icon: <FiCheckSquare />,
     },
-
     {
       to: "/user/results",
-      label: "Result",
-      icon: (
-        <FiBarChart2 className="side-icon" />
-      ),
+      label: "Results",
+      icon: <FiBarChart2 />,
     },
-
     {
       to: "/user/transactions",
       label: "Transactions",
-      icon: (
-        <FiClipboard className="side-icon" />
-      ),
+      icon: <FiClipboard />,
     },
   ];
 
   return (
     <div className="user-dashboard-shell">
 
-      {/* =====================================================
-          MOBILE MENU BUTTON
-      ===================================================== */}
-
+      {/* MOBILE BUTTON */}
       <button
         className="user-mobile-toggle"
         onClick={() =>
-          setSidebarOpen(
-            (state) => !state
-          )
+          setSidebarOpen((state) => !state)
         }
         aria-label="Toggle menu"
       >
-        {sidebarOpen ? (
-          <FiX />
-        ) : (
-          <FiMenu />
-        )}
+        {sidebarOpen ? <FiX /> : <FiMenu />}
       </button>
 
-
-      {/* =====================================================
-          MOBILE OVERLAY
-      ===================================================== */}
-
+      {/* MOBILE OVERLAY */}
       {sidebarOpen && (
         <div
           className="user-sidebar-overlay"
-          onClick={() =>
-            setSidebarOpen(false)
-          }
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
-
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
-
+      {/* SIDEBAR */}
       <aside
         className={`user-sidebar ${
-          sidebarOpen
-            ? "open"
-            : ""
-        } ${
-          collapsed
-            ? "collapsed"
-            : ""
-        }`}
+          sidebarOpen ? "open" : ""
+        } ${collapsed ? "collapsed" : ""}`}
       >
 
-        {/* ===================================================
-            BRAND
-        =================================================== */}
-
-        <div className="user-brand">
+        {/* BRAND AREA */}
+        <div className="user-brand-box">
 
           <Link
-            to="/"
-            className="brand-left"
+            to="/user"
+            className="user-brand-content"
+            onClick={() => setSidebarOpen(false)}
           >
-            <div className="user-brand-icon">
+            <div className="user-admin-brand-image">
               <img
                 src="/hero-image.webp"
-                alt="Logo"
-                className="brand-logo"
+                alt="EVoTE"
               />
             </div>
 
-            <div className="brand-text">
-              <h2>
-                E-Vote
-              </h2>
-
-              <p>
-                Voter Dashboard
-              </p>
+            <div className="user-admin-brand-text">
+              <h2>EVoTE ⬢</h2>
+              <p>Voter Panel</p>
             </div>
           </Link>
 
-
           <button
-            className="sidebar-toggle-btn"
+            className="user-admin-toggle"
             onClick={() =>
-              setCollapsed(
-                (state) => !state
-              )
+              setCollapsed((state) => !state)
             }
             aria-label={
               collapsed
@@ -218,154 +159,98 @@ function UserLayout() {
 
         </div>
 
+        {/* OVERVIEW TITLE */}
+        <div className="user-side-section-title">
+          OVERVIEW
+        </div>
 
-        {/* ===================================================
-            NAVIGATION
-        =================================================== */}
-
-        <nav className="user-side-nav">
-
-          {navItems.map(
-            (item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({
-                  isActive,
-                }) =>
-                  `user-side-link ${
-                    isActive
-                      ? "active"
-                      : ""
-                  }`
-                }
-                onClick={() =>
-                  setSidebarOpen(
-                    false
-                  )
-                }
-                title={
-                  item.label
-                }
-              >
+        {/* NAVIGATION */}
+        <nav className="user-admin-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              title={item.label}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `user-admin-nav-link ${
+                  isActive ? "active" : ""
+                }`
+              }
+            >
+              <span className="user-admin-nav-icon">
                 {item.icon}
+              </span>
 
-                <span className="link-label">
-                  {item.label}
-                </span>
-              </NavLink>
-            )
-          )}
-
+              <span className="user-admin-nav-label">
+                {item.label}
+              </span>
+            </NavLink>
+          ))}
         </nav>
 
-
-        {/* ===================================================
-            BOTTOM BUTTONS
-        =================================================== */}
-
-        <div className="user-sidebar-bottom">
-
-          {/* WALLET */}
+        {/* BOTTOM */}
+        <div className="user-admin-sidebar-bottom">
 
           <button
-            className="user-wallet-btn"
-            onClick={
-              connectWallet
-            }
-            title="Wallet"
+            className="user-admin-wallet"
+            onClick={connectWallet}
+            title={account || "Connect Wallet"}
           >
-            <span
-              className={`wallet-dot ${
-                account
-                  ? "on"
-                  : "off"
-              }`}
-            />
+            <span className="user-admin-wallet-dot" />
 
-            <span
-              className={`link-label ${
-                account
-                  ? "wallet-text-connected"
-                  : "wallet-text-disconnected"
-              }`}
-            >
-              {account
-                ? walletShort
-                : "Not Connected"}
+            <span className="user-admin-nav-label">
+              {walletShort}
             </span>
           </button>
 
-
-          {/* LOGOUT */}
-
           <button
-            className="user-logout-btn"
+            className="user-admin-logout"
             onClick={() =>
-              setShowLogoutModal(
-                true
-              )
+              setShowLogoutModal(true)
             }
-            title="Logout"
           >
-            <FiLogOut className="side-icon" />
+            <FiLogOut />
 
-            <span className="link-label">
+            <span className="user-admin-nav-label">
               Logout
             </span>
           </button>
 
         </div>
-
       </aside>
 
-
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
-
+      {/* MAIN */}
       <main
         className={`user-main ${
-          collapsed
-            ? "collapsed"
-            : ""
+          collapsed ? "collapsed" : ""
         }`}
       >
 
-        {/* ===================================================
-            TOP BAR
-        =================================================== */}
+        {/* TOP BAR */}
+        <section className="user-admin-style-topbar">
 
-        <div className="user-topbar">
-
-          <div>
-            <p className="user-topbar-eyebrow">
+          <div className="user-admin-style-left">
+            <p className="user-admin-style-eyebrow">
               Welcome back
             </p>
 
             <h1>
-              {user?.full_name ||
-                "Voter"}
+              {user?.full_name || "Voter"}
             </h1>
 
-            <p>
+            <p className="user-admin-style-description">
               Manage your voting, candidate requests,
               results and transactions.
             </p>
           </div>
 
-
-          {/* =================================================
-              PROFILE ACCESS
-              Profile removed from sidebar but remains here
-          ================================================= */}
-
           <Link
             to="/user/profile"
-            className="user-profile-chip"
+            className="user-admin-style-profile"
           >
-            <span>
+            <div className="user-admin-style-avatar">
               {profileImage ? (
                 <img
                   src={profileImage}
@@ -374,85 +259,112 @@ function UserLayout() {
               ) : (
                 <FiUser />
               )}
-            </span>
+            </div>
 
-            {user?.full_name ||
-              "Profile"}
+            <div className="user-admin-style-profile-text">
+              <strong>
+                {user?.full_name || "Voter"}
+              </strong>
+
+              <span>Voter</span>
+            </div>
           </Link>
 
-        </div>
+        </section>
 
-
-        {/* ===================================================
-    GLOBAL SMALL TOAST
-=================================================== */}
-
-<GlobalToast
-  message={message}
-  onClose={() => setMessage("")}
-/>
-
-
-        {/* ===================================================
-            CURRENT PAGE
-        =================================================== */}
+        <GlobalToast
+          message={message}
+          onClose={() => setMessage("")}
+        />
 
         <div className="user-page-body">
           <Outlet />
         </div>
 
-
-        {/* ===================================================
-            FOOTER
-        =================================================== */}
-
         <footer className="user-footer">
-          <p>
-            ©{" "}
-            {new Date().getFullYear()}{" "}
-            E-Vote · Secure Blockchain Voting System
-          </p>
-        </footer>
+  <div className="user-footer-text">
+    © {new Date().getFullYear()} E-Vote · Secure Blockchain Voting System
+  </div>
+
+  <div className="user-footer-socials">
+    <a
+      href="https://github.com/dineshsinghdhami"
+      target="_blank"
+      rel="noreferrer"
+      title="GitHub"
+    >
+      <FiGithub />
+    </a>
+
+    <a
+      href="https://www.linkedin.com/in/dineshsinghdhami2"
+      target="_blank"
+      rel="noreferrer"
+      title="LinkedIn"
+    >
+      <FiLinkedin />
+    </a>
+
+    <a
+      href="https://www.youtube.com/@dineshsinghdhami1"
+      target="_blank"
+      rel="noreferrer"
+      title="YouTube"
+    >
+      <FiYoutube />
+    </a>
+
+    <a
+      href="#"
+      title="Facebook"
+    >
+      <FiFacebook />
+    </a>
+
+    <a
+      href="#"
+      title="Instagram"
+    >
+      <FiInstagram />
+    </a>
+
+    <a
+      href="https://wa.me/9779866109958"
+      target="_blank"
+      rel="noreferrer"
+      title="WhatsApp"
+    >
+      <FaWhatsapp />
+    </a>
+  </div>
+</footer>
 
       </main>
 
-
-      {/* =====================================================
-          LOGOUT CONFIRMATION
-      ===================================================== */}
-
+      {/* LOGOUT MODAL */}
       {showLogoutModal && (
         <div className="logout-overlay">
-
           <div className="logout-box">
 
-            <h3>
-              Logout
-            </h3>
+            <h3>Logout</h3>
 
             <p>
               Are you sure you want to logout?
             </p>
 
-
             <div className="logout-actions">
 
               <button
                 className="btn logout-yes"
-                onClick={
-                  logout
-                }
+                onClick={logout}
               >
                 Yes
               </button>
 
-
               <button
                 className="btn logout-no"
                 onClick={() =>
-                  setShowLogoutModal(
-                    false
-                  )
+                  setShowLogoutModal(false)
                 }
               >
                 No
@@ -461,7 +373,6 @@ function UserLayout() {
             </div>
 
           </div>
-
         </div>
       )}
 

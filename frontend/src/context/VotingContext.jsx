@@ -146,14 +146,19 @@ export function VotingProvider({ children }) {
 ] = useState(false);
 
   const [
-    activeElections,
-    setActiveElections,
-  ] = useState([]);
+  activeElections,
+  setActiveElections,
+] = useState([]);
 
-  const [
-    activeElectionsLoading,
-    setActiveElectionsLoading,
-  ] = useState(false);
+const [
+  upcomingElections,
+  setUpcomingElections,
+] = useState([]);
+
+const [
+  activeElectionsLoading,
+  setActiveElectionsLoading,
+] = useState(false);
 
 
   // =====================================================
@@ -583,6 +588,7 @@ export function VotingProvider({ children }) {
           );
 
         const elections = [];
+const upcoming = [];
 
         const now =
           Math.floor(
@@ -698,38 +704,63 @@ export function VotingProvider({ children }) {
                 );
 
               const isActive =
-                postActive &&
-                startDate > 0 &&
-                endDate > 0 &&
-                now >=
-                  startDate &&
-                now <=
-                  endDate;
+  postActive &&
+  startDate > 0 &&
+  endDate > 0 &&
+  now >= startDate &&
+  now <= endDate;
 
-              if (
-                !isActive
-              ) {
-                continue;
-              }
+const isUpcoming =
+  postActive &&
+  startDate > 0 &&
+  endDate > 0 &&
+  now < startDate;
 
-              elections.push({
-                institutionId,
-                institutionName,
 
-                organizationId,
-                organizationName,
+/* ACTIVE ELECTION */
 
-                postId:
-                  actualPostId,
+if (isActive) {
+  elections.push({
+    institutionId,
+    institutionName,
 
-                title,
+    organizationId,
+    organizationName,
 
-                seatLimit,
-                candidateCount,
+    postId: actualPostId,
 
-                startDate,
-                endDate,
-              });
+    title,
+
+    seatLimit,
+    candidateCount,
+
+    startDate,
+    endDate,
+  });
+}
+
+
+/* UPCOMING ELECTION */
+
+if (isUpcoming) {
+  upcoming.push({
+    institutionId,
+    institutionName,
+
+    organizationId,
+    organizationName,
+
+    postId: actualPostId,
+
+    title,
+
+    seatLimit,
+    candidateCount,
+
+    startDate,
+    endDate,
+  });
+}
             }
           }
         }
@@ -739,15 +770,29 @@ export function VotingProvider({ children }) {
         // ENDING SOON FIRST
         // -------------------------------------------------
 
-        elections.sort(
-          (a, b) =>
-            a.endDate -
-            b.endDate
-        );
+        /* ACTIVE: ending soon first */
 
-        setActiveElections(
-          elections
-        );
+elections.sort(
+  (a, b) =>
+    a.endDate - b.endDate
+);
+
+
+/* UPCOMING: starting soon first */
+
+upcoming.sort(
+  (a, b) =>
+    a.startDate - b.startDate
+);
+
+
+setActiveElections(
+  elections
+);
+
+setUpcomingElections(
+  upcoming
+);
 
       } catch (err) {
         console.error(
@@ -756,6 +801,7 @@ export function VotingProvider({ children }) {
         );
 
         setActiveElections([]);
+        setUpcomingElections([]);
 
       } finally {
         setActiveElectionsLoading(
@@ -909,6 +955,7 @@ export function VotingProvider({ children }) {
 
 
     activeElections,
+    upcomingElections,
     activeElectionsLoading,
 
 

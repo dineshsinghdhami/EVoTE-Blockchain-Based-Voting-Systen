@@ -1091,6 +1091,15 @@ input:-webkit-autofill:focus {
 
 .user-sidebar.collapsed .user-brand {
   justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-sidebar.collapsed .sidebar-toggle-btn {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
 }
 
 .user-sidebar .user-brand h2 {
@@ -8136,4 +8145,4519 @@ input:-webkit-autofill:focus {
     gap:
       8px;
   }
+}
+
+/* =========================================================
+   NEW USER DASHBOARD DESIGN
+   Reference Theme: #252525 + Purple Accent
+   ========================================================= */
+
+.user-dashboard-shell {
+  --user-bg: #252525;
+  --user-sidebar-bg: #1d1d1d;
+  --user-card-bg: #292929;
+  --user-card-bg-2: #2d2d2d;
+  --user-border: #3a3a3a;
+
+  --user-purple: #0e7490;
+--user-purple-light: #0891b2;
+--user-purple-soft: rgba(14, 116, 144, 0.15);
+
+  --user-green: #34d399;
+  --user-blue: #3b82f6;
+  --user-orange: #f59e0b;
+  --user-red: #fb7185;
+
+  --user-text: #f5f5f5;
+  --user-muted: #a7a7a7;
+
+  min-height: 100vh;
+  display: flex;
+
+  background: var(--user-bg);
+  color: var(--user-text);
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.user-sidebar {
+  width: 255px;
+  height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  padding: 20px 18px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--user-sidebar-bg);
+
+  border-right: 1px solid var(--user-border);
+
+  z-index: 100;
+
+  transition:
+    width 0.25s ease,
+    transform 0.25s ease;
+
+  box-sizing: border-box;
+}
+
+
+/* COLLAPSED SIDEBAR */
+
+.user-sidebar.collapsed {
+  width: 78px;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.user-brand {
+  min-height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 4px 2px 20px;
+
+  margin-bottom: 15px;
+
+  border-bottom: 1px solid var(--user-border);
+}
+
+
+.brand-left {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  color: white;
+
+  text-decoration: none;
+}
+
+
+.user-brand-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+
+  object-fit: contain;
+}
+
+
+.brand-text {
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  transition:
+    opacity 0.2s ease,
+    width 0.2s ease;
+}
+
+
+.brand-text h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 750;
+}
+
+
+.brand-text p {
+  margin: 4px 0 0;
+
+  color: var(--user-muted);
+
+  font-size: 10px;
+}
+
+
+/* SIDEBAR COLLAPSED BRAND */
+
+.user-sidebar.collapsed .brand-text {
+  width: 0;
+
+  opacity: 0;
+}
+
+
+.user-sidebar.collapsed .user-brand {
+  justify-content: center;
+  position: relative;
+  padding-bottom: 58px;
+}
+
+.user-sidebar.collapsed .sidebar-toggle-btn {
+  display: flex;
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+/* =========================================================
+   SIDEBAR TOGGLE
+   ========================================================= */
+
+.sidebar-toggle-btn {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #b8b8b8;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.sidebar-toggle-btn:hover {
+  color: #ffffff;
+
+  background: #303030;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.user-side-nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  margin-top: 0;
+}
+
+
+.user-side-link {
+  width: 100%;
+
+  min-height: 49px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 0 14px;
+
+  border-radius: 10px;
+
+  color: #c6c6c6;
+
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 550;
+
+  box-sizing: border-box;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.user-side-link:hover {
+  background: #292929;
+
+  color: #ffffff;
+}
+
+
+.user-side-link.active {
+  color: #ffffff;
+
+  background: linear-gradient(
+    135deg,
+    #6f51dc,
+    #523ca9
+  );
+
+  box-shadow:
+    0 6px 18px rgba(118, 87, 232, 0.18);
+}
+
+
+.side-icon {
+  min-width: 20px;
+
+  font-size: 19px;
+
+  flex-shrink: 0;
+}
+
+
+.link-label {
+  white-space: nowrap;
+
+  overflow: hidden;
+}
+
+
+/* COLLAPSED NAV */
+
+.user-sidebar.collapsed .user-side-link {
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+
+.user-sidebar.collapsed .link-label {
+  display: none;
+}
+
+
+/* =========================================================
+   SIDEBAR BOTTOM
+   ========================================================= */
+
+.user-sidebar-bottom {
+  margin-top: auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  padding-top: 18px;
+
+  border-top: 1px solid var(--user-border);
+}
+
+
+/* =========================================================
+   WALLET CARD
+   ========================================================= */
+
+.user-wallet-card {
+  width: 100%;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid var(--user-border);
+
+  background: #242424;
+
+  box-sizing: border-box;
+}
+
+
+.user-wallet-status {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: var(--user-green);
+
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+
+.wallet-dot {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+
+.wallet-dot.on {
+  background: var(--user-green);
+
+  box-shadow:
+    0 0 0 4px rgba(52, 211, 153, 0.12);
+}
+
+
+.wallet-dot.off {
+  background: #ef4444;
+
+  box-shadow:
+    0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+
+.user-wallet-address-row {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 12px;
+}
+
+
+.user-wallet-btn {
+  min-width: 0;
+
+  flex: 1;
+
+  padding: 0;
+
+  display: flex;
+  justify-content: flex-start;
+
+  border: none;
+
+  background: transparent;
+
+  color: #d7d7d7;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+
+.user-wallet-copy {
+  width: 28px;
+  height: 28px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 7px;
+
+  color: #a9a9a9;
+
+  background: #303030;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.user-wallet-copy:hover {
+  color: white;
+
+  background: #3b3b3b;
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+.user-logout-btn {
+  width: 100%;
+
+  min-height: 48px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  border-radius: 10px;
+
+  border: 1px solid var(--user-border);
+
+  color: #d4d4d4;
+
+  background: transparent;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.user-logout-btn:hover {
+  color: #ffffff;
+
+  background: #2b2b2b;
+}
+
+
+/* COLLAPSED BOTTOM */
+
+.user-sidebar.collapsed .user-wallet-card {
+  padding: 13px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.user-sidebar.collapsed .user-wallet-address-row {
+  display: none;
+}
+
+
+.user-sidebar.collapsed .user-wallet-status {
+  justify-content: center;
+}
+
+
+.user-sidebar.collapsed .user-logout-btn {
+  padding: 0;
+
+  justify-content: center;
+}
+
+
+/* =========================================================
+   MAIN DASHBOARD AREA
+   ========================================================= */
+
+.user-main {
+  width: calc(100% - 255px);
+
+  min-height: 100vh;
+
+  margin-left: 255px;
+
+  padding: 0 32px 24px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--user-bg);
+
+  transition:
+    margin-left 0.25s ease,
+    width 0.25s ease;
+}
+
+
+.user-main.collapsed {
+  width: calc(100% - 78px);
+
+  margin-left: 78px;
+}
+
+
+/* =========================================================
+   TOP HEADER
+   ========================================================= */
+
+.user-dashboard-header {
+  min-height: 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+
+.user-header-left {
+  display: flex;
+  align-items: center;
+}
+
+
+.user-desktop-menu {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: #202020;
+
+  color: #d4d4d4;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.user-desktop-menu:hover {
+  color: white;
+
+  background: #303030;
+}
+
+
+.user-header-right {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.user-search-box {
+  width: 330px;
+  height: 42px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid var(--user-border);
+
+  border-radius: 10px;
+
+  background: #242424;
+
+  color: var(--user-muted);
+
+  box-sizing: border-box;
+}
+
+
+.user-search-box svg {
+  font-size: 18px;
+
+  flex-shrink: 0;
+}
+
+
+.user-search-box input {
+  width: 100%;
+
+  border: none;
+
+  outline: none;
+
+  color: #eeeeee;
+
+  background: transparent;
+
+  font-size: 13px;
+}
+
+
+.user-search-box input::placeholder {
+  color: #8d8d8d;
+}
+
+
+/* =========================================================
+   HEADER ICON BUTTONS
+   ========================================================= */
+
+.user-header-icon-btn {
+  width: 38px;
+  height: 38px;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #b9b9b9;
+
+  font-size: 19px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.user-header-icon-btn:hover {
+  background: #303030;
+
+  color: #ffffff;
+}
+
+
+.notification-dot {
+  width: 6px;
+  height: 6px;
+
+  position: absolute;
+
+  top: 6px;
+  right: 6px;
+
+  border-radius: 50%;
+
+  background: var(--user-purple-light);
+}
+
+
+/* =========================================================
+   HEADER PROFILE
+   ========================================================= */
+
+.user-header-profile {
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 5px 8px;
+
+  border-radius: 12px;
+
+  text-decoration: none;
+
+  color: white;
+
+  transition: 0.2s ease;
+}
+
+
+.user-header-profile:hover {
+  background: #2d2d2d;
+}
+
+
+.user-header-avatar {
+  width: 38px;
+  height: 38px;
+
+  overflow: hidden;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  border: 1px solid #464646;
+
+  background: #303030;
+
+  color: white;
+}
+
+
+.user-header-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.user-header-profile-text {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 105px;
+}
+
+
+.user-header-profile-text strong {
+  color: #ffffff;
+
+  font-size: 12.5px;
+
+  white-space: nowrap;
+}
+
+
+.user-header-profile-text span {
+  margin-top: 3px;
+
+  color: #9d9d9d;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   WELCOME AREA
+   ========================================================= */
+
+.user-welcome-section {
+  padding: 5px 4px 22px;
+}
+
+
+.user-welcome-small {
+  margin: 0 0 5px;
+
+  color: #b7b7b7;
+
+  font-size: 16px;
+}
+
+
+.user-welcome-section h1 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(27px, 2.3vw, 34px);
+
+  line-height: 1.2;
+
+  font-weight: 750;
+
+  letter-spacing: -0.02em;
+}
+
+
+.welcome-wave {
+  display: inline-block;
+
+  font-size: 26px;
+}
+
+
+.user-welcome-description {
+  margin: 8px 0 0;
+
+  color: var(--user-muted);
+
+  font-size: 13.5px;
+}
+
+
+/* =========================================================
+   PAGE BODY
+   ========================================================= */
+
+.user-page-body {
+  width: 100%;
+
+  margin-top: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.user-footer {
+  padding: 24px 10px 8px;
+
+  text-align: center;
+
+  border-top: 1px solid #303030;
+
+  margin-top: 30px;
+}
+
+
+.user-footer p {
+  margin: 0;
+
+  color: #858585;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   MOBILE BUTTON
+   ========================================================= */
+
+.user-mobile-toggle {
+  display: none;
+
+  position: fixed;
+
+  top: 15px;
+  left: 15px;
+
+  z-index: 1001;
+
+  width: 40px;
+  height: 40px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--user-border);
+
+  border-radius: 9px;
+
+  background: #232323;
+
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+
+.user-sidebar-overlay {
+  display: none;
+}
+
+
+/* =========================================================
+   LOGOUT MODAL - MATCH USER THEME
+   ========================================================= */
+
+.logout-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 5000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.68);
+
+  backdrop-filter: blur(4px);
+}
+
+
+.logout-box {
+  width: min(390px, 100%);
+
+  padding: 26px;
+
+  border: 1px solid var(--user-border);
+
+  border-radius: 16px;
+
+  background: #292929;
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.35);
+
+  color: white;
+}
+
+
+.logout-box h3 {
+  margin: 0 0 8px;
+
+  font-size: 21px;
+}
+
+
+.logout-box p {
+  margin: 0;
+
+  color: #adadad;
+
+  font-size: 13.5px;
+}
+
+
+.logout-actions {
+  margin-top: 24px;
+
+  display: flex;
+
+  gap: 10px;
+}
+
+
+.logout-actions .btn {
+  flex: 1;
+
+  min-height: 42px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.logout-yes {
+  background: var(--user-purple);
+
+  color: white;
+}
+
+
+.logout-yes:hover {
+  background: var(--user-purple-light);
+}
+
+
+.logout-no {
+  background: #353535;
+
+  color: white;
+}
+
+
+.logout-no:hover {
+  background: #404040;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .user-search-box {
+    width: 240px;
+  }
+
+  .user-header-profile-text {
+    display: none;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 800px) {
+  .user-mobile-toggle {
+    display: flex;
+  }
+
+  .user-sidebar {
+    width: 255px;
+
+    transform: translateX(-100%);
+  }
+
+  .user-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .user-sidebar.collapsed {
+    width: 255px;
+  }
+
+  .user-sidebar.collapsed .brand-text,
+  .user-sidebar.collapsed .link-label {
+    display: block;
+
+    width: auto;
+
+    opacity: 1;
+  }
+
+  .user-sidebar.collapsed .user-brand {
+    justify-content: space-between;
+  }
+
+  .user-sidebar.collapsed .user-side-link {
+    justify-content: flex-start;
+
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .user-sidebar.collapsed .sidebar-toggle-btn {
+    display: flex;
+  }
+
+  .user-sidebar.collapsed .user-wallet-card {
+    padding: 14px;
+
+    display: block;
+  }
+
+  .user-sidebar.collapsed .user-wallet-address-row {
+    display: flex;
+  }
+
+  .user-sidebar-overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 90;
+
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .user-main,
+  .user-main.collapsed {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding: 0 18px 20px;
+  }
+
+  .user-dashboard-header {
+    min-height: 72px;
+
+    padding-left: 48px;
+  }
+
+  .user-desktop-menu {
+    display: none;
+  }
+
+  .user-search-box {
+    width: min(220px, 44vw);
+  }
+
+  .user-welcome-section {
+    padding-top: 14px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 560px) {
+  .user-search-box {
+    display: none;
+  }
+
+  .user-header-icon-btn:nth-of-type(2) {
+    display: none;
+  }
+
+  .user-main,
+  .user-main.collapsed {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .user-welcome-small {
+    font-size: 14px;
+  }
+
+  .user-welcome-section h1 {
+    font-size: 25px;
+  }
+
+  .user-welcome-description {
+    font-size: 12.5px;
+  }
+}
+/* =========================================================
+   USER OVERVIEW DASHBOARD
+   ========================================================= */
+
+.new-user-overview {
+  width: 100%;
+}
+
+
+/* =========================================================
+   WALLET WARNING
+   ========================================================= */
+
+.dashboard-wallet-warning {
+  margin-bottom: 20px;
+
+  padding: 14px 16px;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  border: 1px solid rgba(245, 158, 11, 0.28);
+
+  border-radius: 12px;
+
+  background: rgba(245, 158, 11, 0.08);
+
+  color: #f6d28b;
+
+  font-size: 13px;
+}
+
+
+.dashboard-wallet-warning strong {
+  color: #f59e0b;
+}
+
+
+.dashboard-wallet-warning code {
+  padding: 4px 7px;
+
+  border-radius: 6px;
+
+  background: #1f1f1f;
+
+  color: #ffffff;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+
+.dashboard-stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+
+.dashboard-stat-card {
+  min-height: 96px;
+
+  position: relative;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 17px;
+
+  border: 1px solid #383838;
+
+  border-radius: 14px;
+
+  background: #292929;
+
+  box-sizing: border-box;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.dashboard-stat-card:hover {
+  transform: translateY(-2px);
+
+  border-color: #484848;
+
+  background: #2c2c2c;
+}
+
+
+.dashboard-stat-icon {
+  width: 43px;
+  height: 43px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  font-size: 20px;
+}
+
+
+.dashboard-stat-icon.purple {
+  color: #9a83ff;
+
+  background: rgba(118, 87, 232, 0.14);
+}
+
+
+.dashboard-stat-icon.blue {
+  color: #60a5fa;
+
+  background: rgba(59, 130, 246, 0.13);
+}
+
+
+.dashboard-stat-icon.orange {
+  color: #f5b942;
+
+  background: rgba(245, 158, 11, 0.13);
+}
+
+
+.dashboard-stat-icon.cyan {
+  color: #38c5d7;
+
+  background: rgba(34, 211, 238, 0.11);
+}
+
+
+.dashboard-stat-icon.green {
+  color: #34d399;
+
+  background: rgba(52, 211, 153, 0.12);
+}
+
+
+.dashboard-stat-icon.red {
+  color: #fb7185;
+
+  background: rgba(251, 113, 133, 0.12);
+}
+
+
+.dashboard-stat-content {
+  min-width: 0;
+}
+
+
+.dashboard-stat-content p {
+  margin: 0 0 5px;
+
+  color: #969696;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+
+.dashboard-stat-content h3 {
+  margin: 0;
+
+  color: #f8f8f8;
+
+  font-size: 23px;
+  font-weight: 750;
+
+  line-height: 1.1;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.dashboard-stat-content h3.small-value {
+  font-size: 15px;
+}
+
+
+.dashboard-stat-status {
+  position: absolute;
+
+  top: 15px;
+  right: 15px;
+}
+
+
+.dashboard-stat-status span {
+  display: block;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+
+.dashboard-stat-status.purple span {
+  background: #7657e8;
+}
+
+
+.dashboard-stat-status.blue span {
+  background: #3b82f6;
+}
+
+
+.dashboard-stat-status.orange span {
+  background: #f59e0b;
+}
+
+
+.dashboard-stat-status.cyan span {
+  background: #22d3ee;
+}
+
+
+.dashboard-stat-status.green span {
+  background: #34d399;
+}
+
+
+.dashboard-stat-status.red span {
+  background: #fb7185;
+}
+
+
+/* =========================================================
+   GENERAL DASHBOARD PANELS
+   ========================================================= */
+
+.dashboard-panel {
+  padding: 20px;
+
+  border: 1px solid #383838;
+
+  border-radius: 14px;
+
+  background: #292929;
+
+  box-sizing: border-box;
+}
+
+
+.dashboard-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+
+.dashboard-panel-header h2 {
+  margin: 0;
+
+  color: #f5f5f5;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+.dashboard-panel-header p {
+  margin: 5px 0 0;
+
+  color: #8d8d8d;
+
+  font-size: 11.5px;
+}
+
+
+.dashboard-period {
+  padding: 6px 9px;
+
+  border: 1px solid #3b3b3b;
+
+  border-radius: 7px;
+
+  background: #252525;
+
+  color: #9d9d9d;
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   ANALYTICS + QUICK ACTIONS GRID
+   ========================================================= */
+
+.dashboard-main-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(320px, 0.9fr);
+
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   CHART
+   ========================================================= */
+
+.voting-activity-panel {
+  min-height: 330px;
+}
+
+
+.dashboard-chart {
+  width: 100%;
+  height: 245px;
+}
+
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+.quick-actions-panel {
+  min-height: 330px;
+}
+
+
+.dashboard-quick-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 11px;
+}
+
+
+.dashboard-quick-card {
+  min-height: 108px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  border: 1px solid #383838;
+
+  border-radius: 12px;
+
+  background: #252525;
+
+  text-align: left;
+
+  color: white;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.dashboard-quick-card:hover {
+  transform: translateY(-2px);
+
+  background: #2d2d2d;
+
+  border-color: #494949;
+}
+
+
+.dashboard-quick-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  font-size: 17px;
+}
+
+
+.dashboard-quick-icon.purple {
+  color: #9a83ff;
+
+  background: rgba(118, 87, 232, 0.14);
+}
+
+
+.dashboard-quick-icon.orange {
+  color: #f5b942;
+
+  background: rgba(245, 158, 11, 0.13);
+}
+
+
+.dashboard-quick-icon.green {
+  color: #34d399;
+
+  background: rgba(52, 211, 153, 0.12);
+}
+
+
+.dashboard-quick-icon.blue {
+  color: #60a5fa;
+
+  background: rgba(59, 130, 246, 0.12);
+}
+
+
+.dashboard-quick-card h3 {
+  margin: 0 0 4px;
+
+  color: #f3f3f3;
+
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+
+.dashboard-quick-card p {
+  margin: 0;
+
+  color: #898989;
+
+  font-size: 10.5px;
+
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   BOTTOM GRID
+   ========================================================= */
+
+.dashboard-bottom-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(320px, 0.85fr);
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   VIEW ALL BUTTON
+   ========================================================= */
+
+.dashboard-view-all {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #8b6cff;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.dashboard-view-all:hover {
+  color: #a18cff;
+}
+
+
+/* =========================================================
+   ACTIVE ELECTION LIST
+   ========================================================= */
+
+.dashboard-election-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+.dashboard-election-row {
+  min-height: 88px;
+
+  display: grid;
+
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 13px;
+
+  border: 1px solid #363636;
+
+  border-radius: 11px;
+
+  background: #252525;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.dashboard-election-row:hover {
+  background: #2a2a2a;
+
+  border-color: #454545;
+}
+
+
+.dashboard-election-avatar {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: rgba(118, 87, 232, 0.13);
+
+  color: #9b87ff;
+
+  font-size: 18px;
+}
+
+
+.dashboard-election-details {
+  min-width: 0;
+}
+
+
+.dashboard-election-title-row {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.dashboard-election-title-row h3 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #f2f2f2;
+
+  font-size: 12.5px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.dashboard-active-badge {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 3px 7px;
+
+  border-radius: 20px;
+
+  background: rgba(52, 211, 153, 0.08);
+
+  color: #54dda8;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+}
+
+
+.dashboard-active-badge span {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #34d399;
+}
+
+
+.dashboard-election-details > p {
+  margin: 5px 0 0;
+
+  overflow: hidden;
+
+  color: #8c8c8c;
+
+  font-size: 10.5px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.dashboard-election-meta {
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 13px;
+}
+
+
+.dashboard-election-meta span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #9a9a9a;
+
+  font-size: 9.5px;
+}
+
+
+.dashboard-election-meta svg {
+  color: #777777;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   VOTE BUTTON
+   ========================================================= */
+
+.dashboard-vote-button {
+  min-height: 35px;
+
+  padding: 0 12px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #7657e8;
+
+  color: white;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.dashboard-vote-button:hover {
+  transform: translateY(-1px);
+
+  background: #8568ea;
+}
+
+
+/* =========================================================
+   RECENT ACTIVITY
+   ========================================================= */
+
+.dashboard-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.dashboard-activity-row {
+  display: grid;
+
+  grid-template-columns:
+    auto minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 13px 2px;
+
+  border-bottom: 1px solid #353535;
+}
+
+
+.dashboard-activity-row:last-child {
+  border-bottom: none;
+}
+
+
+.dashboard-activity-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(52, 211, 153, 0.1);
+
+  color: #34d399;
+
+  font-size: 15px;
+}
+
+
+.dashboard-activity-content {
+  min-width: 0;
+}
+
+
+.dashboard-activity-content h4 {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #ededed;
+
+  font-size: 11.5px;
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.dashboard-activity-content p {
+  margin: 4px 0 0;
+
+  color: #818181;
+
+  font-size: 9.5px;
+}
+
+
+.dashboard-activity-time {
+  color: #777777;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+
+.dashboard-empty-state {
+  min-height: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px dashed #3c3c3c;
+
+  border-radius: 10px;
+
+  background: #252525;
+
+  color: #858585;
+
+  font-size: 11px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   LARGE TABLET
+   ========================================================= */
+
+@media (max-width: 1300px) {
+  .dashboard-stats-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .dashboard-main-grid,
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .quick-actions-panel {
+    min-height: auto;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-quick-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-panel {
+    padding: 15px;
+  }
+
+  .dashboard-election-row {
+    grid-template-columns:
+      auto minmax(0, 1fr);
+
+    align-items: flex-start;
+  }
+
+  .dashboard-vote-button {
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+    justify-content: center;
+
+    margin-top: 4px;
+  }
+
+  .dashboard-election-title-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 5px;
+  }
+
+  .dashboard-activity-row {
+    grid-template-columns:
+      auto minmax(0, 1fr);
+  }
+
+  .dashboard-activity-time {
+    grid-column: 2;
+
+    margin-top: -5px;
+  }
+
+  .dashboard-chart {
+    height: 210px;
+  }
+}
+/* =========================================================
+   USER SIDEBAR COLLAPSE - SAME FEEL AS ADMIN
+   ========================================================= */
+
+.user-sidebar.collapsed .user-brand {
+  flex-direction: row !important;
+  justify-content: center !important;
+
+  padding: 4px 2px 20px !important;
+
+  gap: 0 !important;
+}
+
+
+/* Hide logo/text area only while collapsed,
+   exactly like the admin sidebar behavior */
+
+.user-sidebar.collapsed .brand-left {
+  display: none !important;
+}
+
+
+/* Keep collapse button centered and slightly lower */
+.user-sidebar.collapsed .sidebar-toggle-btn {
+  display: flex !important;
+
+  position: static !important;
+
+  margin: 0 auto !important;
+
+  transform: none !important;
+
+  width: 34px;
+  height: 34px;
+}
+/* =========================================================
+   USER TOPBAR - MATCH ADMIN PANEL STYLE
+   ========================================================= */
+
+.user-admin-style-topbar {
+  width: 100%;
+
+  min-height: 130px;
+
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  border: 1px solid #343434;
+
+  border-radius: 16px;
+
+  background: #1f1f1f;
+
+  box-sizing: border-box;
+
+  margin-bottom: 20px;
+}
+
+
+/* LEFT SIDE */
+
+.user-admin-style-left {
+  min-width: 0;
+}
+
+
+.user-admin-style-eyebrow {
+  margin: 0 0 5px;
+
+  color: #a7a7a7;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.07em;
+}
+
+
+.user-admin-style-left h1 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 29px;
+  font-weight: 750;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.02em;
+}
+
+
+.user-admin-style-description {
+  margin: 8px 0 0;
+
+  color: #c2c2c2;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   PROFILE CARD
+   ========================================================= */
+
+.user-admin-style-profile {
+  min-width: 260px;
+
+  min-height: 78px;
+
+  padding: 10px 16px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  border: 1px solid #3a3a3a;
+
+  border-radius: 14px;
+
+  background: #282828;
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  box-sizing: border-box;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.user-admin-style-profile:hover {
+  background: #303030;
+
+  border-color: #474747;
+}
+
+
+/* PROFILE IMAGE */
+
+.user-admin-style-avatar {
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #333333;
+
+  color: #ffffff;
+
+  font-size: 20px;
+}
+
+
+.user-admin-style-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+/* PROFILE TEXT */
+
+.user-admin-style-profile-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.user-admin-style-profile-text strong {
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+.user-admin-style-profile-text span {
+  color: #9cc8ff;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 800px) {
+  .user-admin-style-topbar {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    padding: 20px;
+  }
+
+  .user-admin-style-profile {
+    width: 100%;
+
+    min-width: 0;
+  }
+}
+/* =========================================================
+   USER DASHBOARD COLORS - MATCH ADMIN PANEL
+   Main Accent: #0e7490
+   ========================================================= */
+
+/* Sidebar active item */
+.user-side-link.active {
+  background: #0e7490 !important;
+  color: #ffffff !important;
+
+  box-shadow:
+    0 6px 18px rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* Institution / primary stat icon */
+.dashboard-stat-icon.purple {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* Institution top indicator */
+.dashboard-stat-status.purple span {
+  background: #0e7490 !important;
+}
+
+
+/* Quick Action primary icon */
+.dashboard-quick-icon.purple {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* Active election icon */
+.dashboard-election-avatar {
+  background: rgba(14, 116, 144, 0.18) !important;
+
+  color: #67e8f9 !important;
+}
+
+
+/* Vote Now button */
+.dashboard-vote-button {
+  background: #0e7490 !important;
+}
+
+
+.dashboard-vote-button:hover {
+  background: #0891b2 !important;
+}
+
+
+/* View All links */
+.dashboard-view-all {
+  color: #22d3ee !important;
+}
+
+
+.dashboard-view-all:hover {
+  color: #67e8f9 !important;
+}
+
+
+/* Logout confirmation YES */
+.logout-yes {
+  background: #0e7490 !important;
+}
+
+
+.logout-yes:hover {
+  background: #0891b2 !important;
+}
+
+
+/* Topbar profile role text */
+.user-admin-style-profile-text span {
+  color: #9cc8ff !important;
+}
+
+/* Move user top card slightly down */
+
+.user-admin-style-topbar {
+  margin-top: 18px;
+}
+
+/* =========================================================
+   USER OVERVIEW - MATCH ADMIN COLOR THEME
+   ========================================================= */
+
+
+/* =========================================================
+   TOP STAT CARDS
+   ========================================================= */
+
+.dashboard-stat-card {
+  background: #1f1f1f !important;
+  border: 1px solid #343434 !important;
+}
+
+
+/* All stat icons use admin teal */
+
+.dashboard-stat-icon.purple,
+.dashboard-stat-icon.blue,
+.dashboard-stat-icon.orange,
+.dashboard-stat-icon.cyan,
+.dashboard-stat-icon.green {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* Small colored dots also become teal */
+
+.dashboard-stat-status.purple span,
+.dashboard-stat-status.blue span,
+.dashboard-stat-status.orange span,
+.dashboard-stat-status.cyan span {
+  background: #0e7490 !important;
+}
+
+
+/* Keep wallet connected green because it is a status */
+
+.dashboard-stat-status.green span {
+  background: #34d399 !important;
+}
+
+
+/* =========================================================
+   MAIN PANELS
+   ========================================================= */
+
+.dashboard-panel {
+  background: #1f1f1f !important;
+
+  border: 1px solid #343434 !important;
+}
+
+
+/* =========================================================
+   QUICK ACTION CARDS
+   ========================================================= */
+
+.dashboard-quick-card {
+  background: #282828 !important;
+
+  border: 1px solid #3a3a3a !important;
+}
+
+
+.dashboard-quick-card:hover {
+  background: #303030 !important;
+
+  border-color: #454545 !important;
+}
+
+
+/* All quick action icons same admin teal */
+
+.dashboard-quick-icon.purple,
+.dashboard-quick-icon.orange,
+.dashboard-quick-icon.green,
+.dashboard-quick-icon.blue {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* =========================================================
+   ACTIVE ELECTIONS
+   ========================================================= */
+
+.dashboard-election-row {
+  background: #282828 !important;
+
+  border: 1px solid #3a3a3a !important;
+}
+
+
+.dashboard-election-row:hover {
+  background: #303030 !important;
+
+  border-color: #454545 !important;
+}
+
+
+.dashboard-election-avatar {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+/* =========================================================
+   VOTE BUTTON
+   ========================================================= */
+
+.dashboard-vote-button {
+  background: #0e7490 !important;
+}
+
+
+.dashboard-vote-button:hover {
+  background: #0891b2 !important;
+}
+
+
+/* =========================================================
+   VIEW ALL
+   ========================================================= */
+
+.dashboard-view-all {
+  color: #22d3ee !important;
+}
+
+
+.dashboard-view-all:hover {
+  color: #67e8f9 !important;
+}
+
+
+/* =========================================================
+   RECENT ACTIVITY
+   ========================================================= */
+
+.dashboard-activity-icon {
+  color: #67e8f9 !important;
+
+  background: rgba(14, 116, 144, 0.18) !important;
+}
+
+
+.dashboard-activity-row {
+  border-bottom: 1px solid #343434 !important;
+}
+
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+
+.dashboard-empty-state {
+  background: #1f1f1f !important;
+
+  border: 1px dashed #343434 !important;
+
+  color: #a3a3a3 !important;
+}
+
+
+/* =========================================================
+   PERIOD BUTTON
+   ========================================================= */
+
+.dashboard-period {
+  background: #282828 !important;
+
+  border: 1px solid #3a3a3a !important;
+
+  color: #cfcfcf !important;
+}
+
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+
+.dashboard-panel-header h2,
+.dashboard-stat-content h3,
+.dashboard-quick-card h3,
+.dashboard-election-title-row h3,
+.dashboard-activity-content h4 {
+  color: #ffffff !important;
+}
+
+
+.dashboard-panel-header p,
+.dashboard-stat-content p,
+.dashboard-quick-card p,
+.dashboard-election-details > p,
+.dashboard-activity-content p {
+  color: #a3a3a3 !important;
+}
+
+/* =========================================================
+   USER SIDEBAR - MATCH ADMIN SIZE & SPACING
+   ========================================================= */
+
+.user-sidebar {
+  width: 250px !important;
+  padding: 20px !important;
+}
+
+.user-sidebar.collapsed {
+  width: 76px !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+
+/* MAIN CONTENT POSITION */
+
+.user-main {
+  margin-left: 250px !important;
+  width: calc(100% - 250px) !important;
+}
+
+.user-main.collapsed {
+  margin-left: 76px !important;
+  width: calc(100% - 76px) !important;
+}
+
+
+/* BRAND AREA */
+
+.user-brand {
+  padding: 0 0 16px !important;
+  margin-bottom: 0 !important;
+  gap: 12px !important;
+}
+
+.user-brand-icon {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.brand-logo {
+  width: 44px !important;
+  height: 44px !important;
+  object-fit: contain !important;
+}
+
+.user-sidebar .brand-text h2 {
+  font-size: 16px !important;
+  margin: 0 !important;
+}
+
+.user-sidebar .brand-text p {
+  font-size: 11px !important;
+  margin-top: 3px !important;
+}
+
+
+/* SECTION TITLE LIKE ADMIN */
+
+.user-side-section-title {
+  margin: 22px 0 8px !important;
+
+  color: #a3a3a3 !important;
+
+  font-size: 11px !important;
+  font-weight: 800 !important;
+
+  letter-spacing: 0.08em !important;
+
+  text-transform: uppercase !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+
+  transition:
+    opacity 0.15s ease,
+    max-height 0.22s ease,
+    margin 0.22s ease !important;
+}
+
+
+/* HIDE SECTION TITLE WHEN COLLAPSED */
+
+.user-sidebar.collapsed .user-side-section-title {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+}
+
+
+/* NAVIGATION */
+
+.user-side-nav {
+  gap: 3px !important;
+  margin-top: 0 !important;
+}
+
+
+/* NAV ROWS SAME SIZE AS ADMIN */
+
+.user-side-link {
+  min-height: auto !important;
+
+  padding: 10px 12px !important;
+
+  border-radius: 8px !important;
+
+  gap: 10px !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+
+/* ICON SIZE */
+
+.side-icon {
+  font-size: 16px !important;
+  min-width: 16px !important;
+}
+
+
+/* ACTIVE BUTTON */
+
+.user-side-link.active {
+  background: #0e7490 !important;
+
+  color: #ffffff !important;
+
+  box-shadow: none !important;
+}
+
+
+/* HOVER */
+
+.user-side-link:hover {
+  background: #2d2d2d !important;
+
+  color: white !important;
+}
+
+
+/* COLLAPSED NAV */
+
+.user-sidebar.collapsed .user-side-link {
+  justify-content: center !important;
+
+  gap: 0 !important;
+
+  padding: 10px 0 !important;
+}
+
+
+/* =========================================================
+   WALLET AREA - COMPACT LIKE ADMIN
+   ========================================================= */
+
+.user-sidebar-bottom {
+  gap: 10px !important;
+
+  padding-top: 0 !important;
+
+  border-top: none !important;
+}
+
+
+.user-wallet-card {
+  padding: 0 !important;
+
+  border: none !important;
+
+  background: transparent !important;
+}
+
+
+.user-wallet-card-top {
+  display: none !important;
+}
+
+
+.user-wallet-address-row {
+  margin-top: 0 !important;
+
+  width: 100% !important;
+}
+
+
+.user-wallet-btn {
+  width: 100% !important;
+
+  min-height: 48px !important;
+
+  justify-content: center !important;
+
+  padding: 10px 12px !important;
+
+  border: none !important;
+
+  border-radius: 8px !important;
+
+  background: #0e7490 !important;
+
+  color: white !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+
+.user-wallet-copy {
+  display: none !important;
+}
+
+
+/* LOGOUT */
+
+.user-logout-btn {
+  min-height: 48px !important;
+
+  padding: 10px 12px !important;
+
+  justify-content: center !important;
+
+  gap: 9px !important;
+
+  border-radius: 8px !important;
+
+  background: #282828 !important;
+
+  border: 1px solid #3a3a3a !important;
+
+  color: white !important;
+
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+
+/* COLLAPSED BOTTOM BUTTONS */
+
+.user-sidebar.collapsed .user-wallet-btn,
+.user-sidebar.collapsed .user-logout-btn {
+  padding: 10px 0 !important;
+}
+
+
+/* =========================================================
+   COLLAPSED BRAND / TOGGLE
+   ========================================================= */
+
+.user-sidebar.collapsed .user-brand {
+  justify-content: center !important;
+
+  padding: 0 0 16px !important;
+}
+
+
+.user-sidebar.collapsed .brand-left {
+  display: none !important;
+}
+
+
+.user-sidebar.collapsed .sidebar-toggle-btn {
+  display: flex !important;
+
+  position: static !important;
+
+  margin: 0 auto !important;
+
+  transform: none !important;
+
+  width: 34px !important;
+  height: 34px !important;
+}
+
+/* =========================================================
+   USER BRAND TEXT - MATCH ADMIN APPEARANCE
+   ========================================================= */
+
+.user-sidebar .brand-text h2 {
+  margin: 0 !important;
+
+  color: #ffffff !important;
+
+  font-size: 21px !important;
+  font-weight: 800 !important;
+
+  line-height: 1.15 !important;
+
+  letter-spacing: -0.01em !important;
+}
+
+
+.user-sidebar .brand-text p {
+  margin: 4px 0 0 !important;
+
+  color: #ffffff !important;
+
+  font-size: 10px !important;
+  font-weight: 500 !important;
+
+  line-height: 1.2 !important;
+}
+
+/* =========================================================
+   USER LAYOUT - FINAL ADMIN-MATCH VERSION
+   ========================================================= */
+
+/* SHELL */
+
+.user-dashboard-shell {
+  min-height: 100vh;
+  display: flex;
+  color: #ffffff;
+  background: #252525;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.user-sidebar {
+  width: 250px !important;
+  height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  padding: 20px !important;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-x: hidden;
+
+  background: #1f1f1f !important;
+
+  border-right: 1px solid #343434 !important;
+
+  z-index: 100;
+
+  transition:
+    width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+.user-sidebar.collapsed {
+  width: 76px !important;
+
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+
+/* =========================================================
+   BRAND AREA
+   ========================================================= */
+
+.user-brand-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid #343434;
+}
+
+
+.user-brand-content {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  color: #ffffff;
+
+  text-decoration: none;
+}
+
+
+/* LOGO */
+
+.user-admin-brand-image {
+  width: 44px;
+  height: 44px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+
+.user-admin-brand-image img {
+  width: 44px;
+  height: 44px;
+
+  object-fit: contain;
+}
+
+
+/* BRAND TEXT */
+
+.user-admin-brand-text {
+  max-width: 160px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.15s ease,
+    max-width 0.22s ease;
+}
+
+
+.user-admin-brand-text h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 20px;
+  font-weight: 800;
+
+  line-height: 1.15;
+}
+
+
+.user-admin-brand-text p {
+  margin: 3px 0 0;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   COLLAPSE BUTTON
+   ========================================================= */
+
+.user-admin-toggle {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #a3a3a3;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.user-admin-toggle:hover {
+  background: #2d2d2d;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   COLLAPSED BRAND
+   ========================================================= */
+
+.user-sidebar.collapsed .user-brand-box {
+  justify-content: center;
+}
+
+
+.user-sidebar.collapsed .user-brand-content {
+  display: none;
+}
+
+
+.user-sidebar.collapsed .user-admin-toggle {
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   SECTION TITLE
+   ========================================================= */
+
+.user-side-section-title {
+  max-height: 20px;
+
+  margin: 22px 0 8px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  color: #a3a3a3;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.15s ease,
+    max-height 0.22s ease,
+    margin 0.22s ease;
+}
+
+
+.user-sidebar.collapsed .user-side-section-title {
+  max-height: 0;
+
+  margin: 0;
+
+  opacity: 0;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.user-admin-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.user-admin-nav-link {
+  width: 100%;
+
+  margin-bottom: 3px;
+
+  padding: 10px 12px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #d4d4d4;
+
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  transition: 0.2s ease;
+}
+
+
+.user-admin-nav-link:hover {
+  background: #2d2d2d;
+
+  color: #ffffff;
+}
+
+
+.user-admin-nav-link.active {
+  background: #0e7490;
+
+  color: #ffffff;
+}
+
+
+/* NAV ICON */
+
+.user-admin-nav-icon {
+  min-width: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  font-size: 16px;
+}
+
+
+/* NAV LABEL */
+
+.user-admin-nav-label {
+  max-width: 200px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.15s ease,
+    max-width 0.22s ease;
+}
+
+
+/* COLLAPSED NAV */
+
+.user-sidebar.collapsed .user-admin-nav-link {
+  justify-content: center;
+
+  gap: 0;
+
+  padding: 10px 0;
+}
+
+
+.user-sidebar.collapsed .user-admin-nav-label {
+  max-width: 0;
+
+  opacity: 0;
+}
+
+
+/* =========================================================
+   SIDEBAR BOTTOM
+   ========================================================= */
+
+.user-admin-sidebar-bottom {
+  margin-top: auto;
+
+  display: grid;
+
+  gap: 10px;
+}
+
+
+/* WALLET */
+
+.user-admin-wallet {
+  width: 100%;
+
+  padding: 11px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #0e7490;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.user-admin-wallet-dot {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #22c55e !important;
+
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.16) !important;
+}
+
+
+/* LOGOUT */
+
+.user-admin-logout {
+  width: 100%;
+
+  padding: 11px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 1px solid #3a3a3a;
+
+  border-radius: 8px;
+
+  background: #282828;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.user-admin-logout:hover {
+  background: #303030;
+}
+
+
+/* COLLAPSED BOTTOM */
+
+.user-sidebar.collapsed .user-admin-wallet,
+.user-sidebar.collapsed .user-admin-logout {
+  padding: 10px 0;
+}
+
+
+/* =========================================================
+   MAIN CONTENT - SAME POSITION AS ADMIN
+   ========================================================= */
+
+.user-main {
+  width: calc(100% - 250px) !important;
+
+  min-height: 100vh;
+
+  margin-left: 250px !important;
+
+  padding: 20px !important;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #252525;
+
+  transition:
+    margin-left 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+.user-main.collapsed {
+  width: calc(100% - 76px) !important;
+
+  margin-left: 76px !important;
+}
+
+
+/* =========================================================
+   TOP BAR - SAME FEEL AS ADMIN
+   ========================================================= */
+
+.user-admin-style-topbar {
+  width: 100%;
+
+  min-height: auto !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 20px !important;
+
+  padding: 18px !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  border: 1px solid #343434 !important;
+
+  border-radius: 12px !important;
+
+  background: #1f1f1f !important;
+}
+
+
+/* LEFT */
+
+.user-admin-style-eyebrow {
+  margin: 0 0 4px;
+
+  color: #a3a3a3;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+
+.user-admin-style-left h1 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 28px !important;
+  font-weight: 800;
+}
+
+
+.user-admin-style-description {
+  margin: 8px 0 0;
+
+  color: #cfcfcf;
+
+  font-size: 14px;
+}
+
+
+/* PROFILE */
+
+.user-admin-style-profile {
+  min-width: 220px !important;
+
+  min-height: 64px !important;
+
+  padding: 8px 14px !important;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border: 1px solid #3a3a3a;
+
+  border-radius: 12px !important;
+
+  background: #282828;
+
+  color: #ffffff;
+
+  text-decoration: none;
+}
+
+
+.user-admin-style-avatar {
+  width: 46px !important;
+  height: 46px !important;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #0e7490;
+}
+
+
+.user-admin-style-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.user-admin-style-profile-text strong {
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+.user-admin-style-profile-text span {
+  margin-top: 3px;
+
+  color: #9cc8ff !important;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   PAGE BODY
+   ========================================================= */
+
+.user-page-body {
+  margin-top: 0 !important;
+
+  width: 100%;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+  .user-mobile-toggle {
+    display: flex;
+
+    position: fixed;
+
+    top: 16px;
+    left: 16px;
+
+    z-index: 120;
+
+    width: 42px;
+    height: 42px;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #343434;
+
+    border-radius: 8px;
+
+    background: #1f1f1f;
+
+    color: #ffffff;
+
+    font-size: 20px;
+  }
+
+
+  .user-sidebar {
+    width: 250px !important;
+
+    padding: 20px !important;
+
+    transform: translateX(-100%);
+  }
+
+
+  .user-sidebar.open {
+    transform: translateX(0);
+  }
+
+
+  .user-sidebar.collapsed {
+    width: 250px !important;
+
+    padding: 20px !important;
+  }
+
+
+  .user-sidebar.collapsed .user-brand-box {
+    justify-content: space-between;
+  }
+
+
+  .user-sidebar.collapsed .user-brand-content {
+    display: flex;
+  }
+
+
+  .user-sidebar.collapsed .user-side-section-title {
+    max-height: 20px;
+
+    margin: 22px 0 8px;
+
+    opacity: 1;
+  }
+
+
+  .user-sidebar.collapsed .user-admin-nav-link {
+    justify-content: flex-start;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+  }
+
+
+  .user-sidebar.collapsed .user-admin-nav-label {
+    max-width: 200px;
+
+    opacity: 1;
+  }
+
+
+  .user-main,
+  .user-main.collapsed {
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding: 76px 16px 20px !important;
+  }
+
+
+  .user-admin-style-topbar {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .user-admin-style-profile {
+    width: 100%;
+
+    min-width: 0 !important;
+  }
+}
+
+/* =========================================================
+   SKELETON LOADING EFFECT
+   ========================================================= */
+
+.dashboard-loading-line {
+  position: relative;
+  overflow: hidden;
+
+  background: #2b2b2b;
+
+  border-radius: 7px;
+}
+
+
+/* SHIMMER */
+
+.dashboard-loading-line::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.07),
+    transparent
+  );
+
+  animation: dashboardSkeletonShimmer 1.4s infinite;
+}
+
+
+@keyframes dashboardSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/* =========================================================
+   ELECTION PAGE SKELETON SIZES
+   ========================================================= */
+
+.election-list-skeleton-status {
+  width: 64px;
+  height: 26px;
+
+  border-radius: 999px;
+}
+
+
+.election-list-skeleton-title {
+  width: 42%;
+  height: 18px;
+
+  margin-bottom: 10px;
+}
+
+
+.election-list-skeleton-location {
+  width: 30%;
+  height: 13px;
+
+  margin-bottom: 14px;
+}
+
+
+.election-list-skeleton-meta {
+  width: 110px;
+  height: 12px;
+}
+
+
+.election-list-skeleton-meta-small {
+  width: 85px;
+  height: 12px;
+}
+
+
+.election-list-skeleton-date {
+  width: 155px;
+  height: 12px;
+}
+
+
+.election-list-skeleton-button {
+  width: 92px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  border-radius: 8px;
+}
+
+
+/* =========================================================
+   MAKE SKELETON ROW LOOK NATURAL
+   ========================================================= */
+
+.all-election-row:has(.dashboard-loading-line) {
+  pointer-events: none;
+}
+
+
+.all-election-row:has(.dashboard-loading-line)
+.all-election-main {
+  width: 100%;
+}
+
+
+.all-election-row:has(.dashboard-loading-line)
+.all-election-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 15px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .election-list-skeleton-title {
+    width: 70%;
+  }
+
+  .election-list-skeleton-location {
+    width: 55%;
+  }
+
+  .election-list-skeleton-date {
+    width: 120px;
+  }
+
+  .election-list-skeleton-button {
+    width: 100%;
+    height: 38px;
+  }
+}
+
+/* =========================================================
+   TRANSACTION SKELETON LOADING
+   ========================================================= */
+
+.dashboard-loading-line {
+  position: relative;
+  overflow: hidden;
+
+  background: #2b2b2b;
+
+  border-radius: 6px;
+}
+
+
+/* SHIMMER ANIMATION */
+
+.dashboard-loading-line::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+
+  animation: transactionSkeletonShimmer 1.25s infinite;
+}
+
+
+@keyframes transactionSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/* =========================================================
+   SKELETON CARD
+   ========================================================= */
+
+.transaction-skeleton-card {
+  min-height: 88px !important;
+
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+
+  gap: 10px !important;
+
+  pointer-events: none;
+}
+
+
+/* LEFT SIDE */
+
+.transaction-skeleton-left {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.transaction-skeleton-title {
+  width: 34%;
+  height: 11px;
+}
+
+
+.transaction-skeleton-detail {
+  width: 27%;
+  height: 7px;
+}
+
+
+.transaction-skeleton-detail-wide {
+  width: 44%;
+  height: 7px;
+}
+
+
+.transaction-skeleton-hash {
+  width: 38%;
+  height: 7px;
+}
+
+
+.transaction-skeleton-wallet {
+  width: 52%;
+  height: 7px;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.transaction-skeleton-right {
+  width: 150px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  gap: 6px;
+}
+
+
+.transaction-skeleton-badge {
+  width: 55px;
+  height: 17px;
+
+  border-radius: 20px;
+}
+
+
+.transaction-skeleton-block {
+  width: 145px;
+  height: 38px;
+
+  border-radius: 6px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 850px) {
+  .transaction-skeleton-card {
+    flex-direction: column !important;
+  }
+
+  .transaction-skeleton-right {
+    width: 100%;
+
+    align-items: flex-start;
+  }
+
+  .transaction-skeleton-block {
+    width: 100%;
+  }
+
+  .transaction-skeleton-title {
+    width: 60%;
+  }
+
+  .transaction-skeleton-wallet {
+    width: 75%;
+  }
+}
+
+
+/* =========================================================
+   ADMIN WALLET CONNECTED DOT - GREEN
+   ========================================================= */
+
+.admin-wallet-dot,
+.admin-sidebar .wallet-dot,
+.admin-sidebar-bottom .wallet-dot {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #22c55e !important;
+
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.16) !important;
+}
+
+/* =========================================================
+   FIX ADMIN ACTIVE BADGE WIDTH
+   ========================================================= */
+
+.dashboard-active-badge {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: max-content !important;
+
+  flex: 0 0 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  align-self: center !important;
+
+  padding: 3px 8px !important;
+
+  border-radius: 999px !important;
+
+  background: rgba(34, 197, 94, 0.12) !important;
+  border: 1px solid rgba(34, 197, 94, 0.30) !important;
+
+  color: #4ade80 !important;
+
+  font-size: 9px !important;
+  font-weight: 800 !important;
+
+  white-space: nowrap !important;
+}
+
+
+/* Make title use remaining space, not the badge */
+
+.dashboard-election-title-row h3 {
+  flex: 0 1 auto !important;
+}
+
+
+/* Never stretch children inside the title row */
+
+.dashboard-election-title-row {
+  justify-content: flex-start !important;
+  width: auto !important;
+}
+
+/* =========================================================
+   FINAL FIX - ADMIN DASHBOARD ACTIVE ELECTION ROW
+   Prevent user dashboard grid CSS from affecting admin
+   ========================================================= */
+
+.admin-main .dashboard-election-row {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto !important;
+
+  align-items: center !important;
+
+  gap: 16px !important;
+}
+
+
+/* LEFT ELECTION INFORMATION */
+
+.admin-main .dashboard-election-main {
+  min-width: 0 !important;
+
+  width: auto !important;
+}
+
+
+/* SMALL ACTIVE BADGE ON RIGHT */
+
+.admin-main .dashboard-election-status {
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: max-content !important;
+
+  justify-self: end !important;
+  align-self: center !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 5px 11px !important;
+
+  flex: none !important;
+
+  white-space: nowrap !important;
+}
+
+/* =========================================================
+   USER OVERVIEW - STAT CARD SKELETON
+   ========================================================= */
+
+.dashboard-stat-skeleton-card {
+  pointer-events: none;
+}
+
+.dashboard-loading-line {
+  position: relative;
+  overflow: hidden;
+
+  background: #2b2b2b;
+
+  border-radius: 6px;
+}
+
+.dashboard-loading-line::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.07),
+    transparent
+  );
+
+  animation: overviewSkeletonShimmer 1.25s infinite;
+}
+
+@keyframes overviewSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/* ICON PLACEHOLDER */
+
+.dashboard-stat-skeleton-icon {
+  width: 54px;
+  height: 54px;
+
+  flex-shrink: 0;
+
+  border-radius: 12px;
+}
+
+
+/* LABEL */
+
+.dashboard-stat-skeleton-label {
+  width: 85px;
+  height: 10px;
+
+  margin-bottom: 9px;
+}
+
+
+/* VALUE */
+
+.dashboard-stat-skeleton-value {
+  width: 48px;
+  height: 19px;
+}
+
+
+/* SMALL TOP-RIGHT DOT */
+
+.dashboard-stat-skeleton-dot {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+}
+
+
+/* make position anchor work */
+
+.dashboard-stat-skeleton-card {
+  position: relative;
+}
+
+/* =========================================================
+   BOTTOM PANELS SKELETON
+   ========================================================= */
+
+
+/* ACTIVE ELECTION */
+
+.dashboard-election-skeleton-row {
+  pointer-events: none;
+}
+
+.dashboard-election-skeleton-avatar {
+  width: 42px;
+  height: 42px;
+
+  border-radius: 11px;
+
+  flex-shrink: 0;
+}
+
+.dashboard-election-skeleton-title {
+  width: 150px;
+  height: 12px;
+
+  margin-bottom: 8px;
+}
+
+.dashboard-election-skeleton-place {
+  width: 180px;
+  height: 9px;
+
+  margin-bottom: 9px;
+}
+
+.dashboard-election-skeleton-meta {
+  width: 90px;
+  height: 8px;
+}
+
+.dashboard-election-skeleton-date {
+  width: 130px;
+  height: 8px;
+}
+
+.dashboard-election-skeleton-button {
+  width: 95px;
+  height: 38px;
+
+  border-radius: 8px;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   RECENT ACTIVITY
+   ========================================================= */
+
+.dashboard-activity-skeleton-row {
+  pointer-events: none;
+}
+
+.dashboard-activity-skeleton-icon {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+}
+
+.dashboard-activity-skeleton-title {
+  width: 220px;
+  height: 10px;
+
+  margin-bottom: 7px;
+}
+
+.dashboard-activity-skeleton-text {
+  width: 150px;
+  height: 8px;
+}
+
+.dashboard-activity-skeleton-time {
+  width: 55px;
+  height: 8px;
+
+  flex-shrink: 0;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+  .dashboard-election-skeleton-button {
+    width: 100%;
+  }
+
+  .dashboard-activity-skeleton-title {
+    width: 70%;
+  }
+
+  .dashboard-activity-skeleton-text {
+    width: 55%;
+  }
+}
+
+
+
+/* =========================================================
+   USER FOOTER - SAME CLEAN STYLE AS ADMIN
+   ========================================================= */
+
+.user-footer {
+  width: 100%;
+  min-height: 64px;
+
+  margin-top: auto;
+  padding: 0 32px;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  border-top: 1px solid #333333;
+
+  background: #252525;
+  color: #929292;
+
+  box-sizing: border-box;
+}
+
+
+/* COPYRIGHT - CENTER */
+
+.user-footer-text {
+  grid-column: 2;
+
+  margin: 0;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  color: #929292;
+}
+
+
+/* SOCIAL ICONS - RIGHT */
+
+.user-footer-socials {
+  grid-column: 3;
+
+  justify-self: end;
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+
+/* ICON LINKS */
+
+.user-footer-socials a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  color: #929292;
+
+  font-size: 18px;
+
+  text-decoration: none;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* HOVER */
+
+.user-footer-socials a:hover {
+  color: #22d3ee;
+  background: transparent;
+
+  transform: translateY(-1px);
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+  .user-footer {
+    min-height: auto;
+
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 12px;
+  }
+
+  .user-footer-text {
+    font-size: 11px;
+
+    white-space: normal;
+
+    text-align: center;
+  }
+
+  .user-footer-socials {
+    justify-content: center;
+
+    gap: 16px;
+  }
+
+  .user-footer-socials a {
+    font-size: 17px;
+  }
+}
+
+/* =========================================================
+   USER FOOTER - COMPACT LIKE ADMIN
+   ========================================================= */
+
+.user-footer {
+  width: 100%;
+
+  margin-top: 12px !important;
+  padding: 14px 18px !important;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  border-top: none !important;
+
+  background: #252525;
+
+  color: #929292;
+
+  box-sizing: border-box;
+}
+
+
+/* CENTER TEXT */
+
+.user-footer-text {
+  grid-column: 2;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  color: #929292;
+
+  white-space: nowrap;
+}
+
+
+/* RIGHT SOCIAL ICONS */
+
+.user-footer-socials {
+  grid-column: 3;
+
+  justify-self: end;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+
+.user-footer-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  background: transparent;
+
+  color: #929292;
+
+  font-size: 17px;
+
+  text-decoration: none;
+
+  transition: color 0.15s ease;
+}
+
+
+.user-footer-socials a:hover {
+  color: #22d3ee;
+
+  background: transparent;
 }
