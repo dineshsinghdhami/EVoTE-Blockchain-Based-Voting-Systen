@@ -839,6 +839,40 @@ def submit_session_candidate(
         function_call
     )
 
+def verify_signed_request(
+    from_address: str,
+    to_address: str,
+    value: int,
+    gas: int,
+    deadline: int,
+    data: str,
+    signature: str
+):
+    sender = Web3.to_checksum_address(
+        from_address
+    )
+
+    target = Web3.to_checksum_address(
+        to_address
+    )
+
+    request = (
+        sender,
+        target,
+        value,
+        gas,
+        deadline,
+        data,
+        signature
+    )
+
+    return (
+        forwarder_contract
+        .functions
+        .verify(request)
+        .call()
+    )
+
 def relay_signed_request(
     from_address: str,
     to_address: str,

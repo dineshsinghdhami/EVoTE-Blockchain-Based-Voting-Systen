@@ -69,11 +69,14 @@ const getFriendlyErrorMessage = (error) => {
   }
 
   if (
-    message.includes("network") ||
-    message.includes("chain")
-  ) {
-    return "Please make sure MetaMask is connected to the Ethereum Sepolia network.";
-  }
+  message.includes("wrong network") ||
+  message.includes("wrong chain") ||
+  message.includes("chain id") ||
+  message.includes("chainid") ||
+  message.includes("did not switch to ethereum sepolia")
+) {
+  return "Please make sure MetaMask is connected to the Ethereum Sepolia network.";
+}
 
   if (
     message.includes("failed to fetch") ||
@@ -82,7 +85,10 @@ const getFriendlyErrorMessage = (error) => {
     return "Unable to connect to the EVoTE server. Please check that the backend is running.";
   }
 
-  return "Something went wrong while completing registration. Please try again.";
+  return (
+  error?.message ||
+  "Something went wrong while completing registration. Please try again."
+);
 };
 
 const switchToSepolia = async () => {
@@ -147,9 +153,7 @@ function Register() {
 
   const [step, setStep] = useState(1);
 
-  const [wallet, setWallet] = useState(
-    localStorage.getItem("registration_wallet") || ""
-  );
+  const [wallet, setWallet] = useState("");
 
   const [form, setForm] = useState({
     full_name: "",
@@ -200,8 +204,6 @@ function Register() {
       await switchToSepolia();
 
       const selectedWallet = accounts[0];
-
-      setWallet(selectedWallet);
 
       // Request authentication nonce
       const nonceResponse = await fetch(
@@ -263,6 +265,7 @@ function Register() {
             "Wallet verification failed."
         );
       }
+      setWallet(selectedWallet);
 
       // Already registered → send to login/dashboard
       if (verifyData.registered) {
@@ -649,588 +652,772 @@ const prepareResponse =
     };
 
     return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "20px",
+      <>
+        <style>
+          {`
+            * {
+              box-sizing: border-box;
+            }
 
-        backgroundImage:
-          "linear-gradient(rgba(0,0,0,0.68), rgba(0,0,0,0.68)), url('/blockchain-bg.webp')",
+            html,
+            body,
+            #root {
+              margin: 0;
+              min-height: 100%;
+            }
 
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "460px",
-          padding: "32px",
+            .register-page {
+              min-height: 100vh;
+              min-height: 100dvh;
 
-          background:
-            "rgba(255,255,255,0.08)",
+              display: flex;
+              align-items: center;
+              justify-content: center;
 
-          backdropFilter: "blur(15px)",
-          WebkitBackdropFilter:
-            "blur(15px)",
+              padding: 18px;
 
-          border:
-            "1px solid rgba(255,255,255,0.2)",
+              background-image:
+                linear-gradient(
+                  rgba(0, 0, 0, 0.74),
+                  rgba(0, 0, 0, 0.74)
+                ),
+                url("/blockchain-bg.webp");
 
-          borderRadius: "18px",
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+            }
 
-          boxShadow:
-            "0 8px 32px rgba(0,0,0,0.35)",
+            .register-card {
+              width: 100%;
+              max-width: 370px;
 
-          color: "white",
-        }}
-      >
-        {/* HEADER */}
+              padding: 22px;
 
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "24px",
-          }}
-        >
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "2rem",
-              fontWeight: "800",
-            }}
-          >
-            EVoTE ⬢
-          </h1>
+              background: rgba(24, 24, 24, 0.88);
 
-          <p
-            style={{
-              marginTop: "8px",
-              marginBottom: "4px",
-              color: "#d1d5db",
-              fontSize: "14px",
-            }}
-          >
-            Secure Blockchain Voting
-          </p>
+              backdrop-filter: blur(16px);
+              -webkit-backdrop-filter: blur(16px);
 
-          <p
-            style={{
-              margin: 0,
-              color: "#9ca3af",
-              fontSize: "12px",
-            }}
-          >
-            Create your voter account securely
-          </p>
-        </div>
+              border: 1px solid rgba(255, 255, 255, 0.14);
+              border-radius: 14px;
 
-        {/* STEP INDICATOR */}
+              box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "7px",
-            marginBottom: "22px",
-          }}
-        >
-          {[1, 2, 3].map((item) => (
-            <div
-              key={item}
-              style={{
-                width: item === step ? "34px" : "24px",
-                height: "5px",
-                borderRadius: "20px",
+              color: white;
+            }
 
-                background:
-                  item <= step
-                    ? "#f97316"
-                    : "rgba(255,255,255,0.2)",
+            .register-header {
+              text-align: center;
+              margin-bottom: 15px;
+            }
 
-                transition: "all 0.3s ease",
-              }}
-            />
-          ))}
-        </div>
+            .register-title {
+              margin: 0;
 
-        {/* WALLET */}
+              font-size: 25px;
+              line-height: 1.1;
 
-        {wallet && (
-          <div
-            style={{
+              font-weight: 800;
+              letter-spacing: 0.5px;
+            }
+
+            .register-subtitle {
+              margin: 6px 0 2px;
+
+              color: #b8bec8;
+
+              font-size: 12.5px;
+              line-height: 1.35;
+            }
+
+            .register-caption {
+              margin: 0;
+
+              color: #858c98;
+
+              font-size: 11px;
+              line-height: 1.35;
+            }
+
+            .step-indicator {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+
+              gap: 6px;
+
+              margin-bottom: 14px;
+            }
+
+            .step-bar {
+              height: 4px;
+
+              border-radius: 999px;
+
+              transition: all 0.25s ease;
+            }
+
+            .wallet-box,
+            .info-box,
+            .complete-box,
+            .status-box,
+            .error-box {
+              border-radius: 8px;
+            }
+
+            .wallet-box {
+              padding: 9px 10px;
+              margin-bottom: 11px;
+
+              background: rgba(37, 99, 235, 0.1);
+
+              border: 1px solid rgba(96, 165, 250, 0.2);
+
+              color: #bfdbfe;
+
+              font-size: 11px;
+              line-height: 1.45;
+
+              word-break: break-all;
+            }
+
+            .wallet-label {
+              display: block;
+
+              margin-bottom: 2px;
+
+              font-size: 11.5px;
+              font-weight: 700;
+            }
+
+            .error-box {
+              display: flex;
+              align-items: flex-start;
+
+              gap: 9px;
+
+              padding: 10px;
+              margin-bottom: 11px;
+
+              background: rgba(239, 68, 68, 0.12);
+
+              border: 1px solid rgba(248, 113, 113, 0.3);
+
+              color: #fecaca;
+            }
+
+            .error-icon {
+              flex-shrink: 0;
+
+              width: 22px;
+              height: 22px;
+
+              display: flex;
+              align-items: center;
+              justify-content: center;
+
+              border-radius: 50%;
+
+              background: rgba(239, 68, 68, 0.2);
+
+              color: #fca5a5;
+
+              font-size: 13px;
+              font-weight: 800;
+            }
+
+            .error-title {
+              margin-bottom: 2px;
+
+              color: #fee2e2;
+
+              font-size: 12px;
+              font-weight: 700;
+            }
+
+            .error-message {
+              color: #fca5a5;
+
+              font-size: 11.5px;
+              line-height: 1.45;
+
+              word-break: break-word;
+            }
+
+            .status-box {
+              padding: 9px 10px;
+              margin-bottom: 11px;
+
+              background: rgba(34, 197, 94, 0.1);
+
+              border: 1px solid rgba(34, 197, 94, 0.22);
+
+              color: #bbf7d0;
+
+              font-size: 11.5px;
+              line-height: 1.45;
+            }
+
+            .info-box,
+            .complete-box {
+              padding: 10px 11px;
+              margin-bottom: 13px;
+
+              background: rgba(37, 99, 235, 0.1);
+
+              border: 1px solid rgba(96, 165, 250, 0.2);
+
+              color: #bfdbfe;
+
+              font-size: 11.8px;
+              line-height: 1.5;
+            }
+
+            .step-heading {
+              margin-bottom: 12px;
+            }
+
+            .step-title {
+              margin: 0 0 3px;
+
+              font-size: 15px;
+              line-height: 1.3;
+              font-weight: 700;
+            }
+
+            .step-description {
+              margin: 0;
+
+              color: #8f96a3;
+
+              font-size: 11.5px;
+              line-height: 1.4;
+            }
+
+            .form-group {
+              margin-bottom: 10px;
+            }
+
+            .form-label {
+              display: block;
+
+              margin-bottom: 5px;
+
+              color: #d1d5db;
+
+              font-size: 11.5px;
+              font-weight: 500;
+            }
+
+            .form-input {
+              width: 100%;
+              height: 38px;
+
+              padding: 0 11px;
+
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              border-radius: 8px;
+
+              background: rgba(15, 23, 42, 0.55);
+
+              color: white;
+
+              outline: none;
+
+              font-size: 12px;
+
+              transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+            }
+
+            .form-input::placeholder {
+              color: #6f7682;
+            }
+
+            .form-input:focus {
+              border-color: rgba(249, 115, 22, 0.7);
+
+              box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+
+              background: rgba(15, 23, 42, 0.72);
+            }
+
+            .primary-button,
+            .secondary-button {
+              width: 100%;
+
+              min-height: 40px;
+
+              padding: 9px 12px;
+
+              border-radius: 8px;
+
+              font-size: 13px;
+              font-weight: 700;
+
+              cursor: pointer;
+
+              transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease,
+                opacity 0.2s ease;
+            }
+
+            .primary-button {
+              border: none;
+
               background:
-                "rgba(37,99,235,0.12)",
+                linear-gradient(
+                  135deg,
+                  #f97316 0%,
+                  #f59e0b 100%
+                );
 
-              border:
-                "1px solid rgba(96,165,250,0.25)",
+              color: white;
 
-              borderRadius: "10px",
+              box-shadow:
+                0 5px 16px rgba(249, 115, 22, 0.17);
+            }
 
-              padding: "12px",
-              marginBottom: "16px",
+            .primary-button:hover:not(:disabled) {
+              transform: translateY(-1px);
 
-              color: "#bfdbfe",
+              box-shadow:
+                0 7px 20px rgba(249, 115, 22, 0.26);
+            }
 
-              fontSize: "12px",
-              lineHeight: "1.5",
+            .primary-button:disabled {
+              cursor: not-allowed;
+              opacity: 0.7;
+            }
 
-              wordBreak: "break-all",
-            }}
-          >
-            <strong>Connected Wallet</strong>
+            .secondary-button {
+              border: 1px solid rgba(255, 255, 255, 0.2);
 
-            <br />
+              background: rgba(255, 255, 255, 0.025);
 
-            {wallet}
-          </div>
-        )}
+              color: #f3f4f6;
+            }
 
-        {/* ERROR */}
+            .secondary-button:hover {
+              background: rgba(255, 255, 255, 0.07);
 
-        {error && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "12px",
-              background: "rgba(239,68,68,0.12)",
-              border: "1px solid rgba(248,113,113,0.35)",
-              color: "#fecaca",
-              padding: "14px",
-              borderRadius: "10px",
-              marginBottom: "16px",
-            }}
-          >
-            <div
-              style={{
-                flexShrink: 0,
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(239,68,68,0.2)",
-                color: "#fca5a5",
-                fontWeight: "800",
-                fontSize: "16px",
-              }}
-            >
-              !
-            </div>
+              border-color: rgba(255, 255, 255, 0.32);
+            }
 
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  color: "#fee2e2",
-                  fontWeight: "700",
-                  fontSize: "14px",
-                  marginBottom: "4px",
-                }}
-              >
-                Registration could not be completed
-              </div>
+            .divider {
+              display: flex;
+              align-items: center;
 
-              <div
-                style={{
-                  color: "#fca5a5",
-                  fontSize: "13px",
-                  lineHeight: "1.55",
-                }}
-              >
-                {error}
-              </div>
-            </div>
-          </div>
-        )}
+              gap: 10px;
 
-        {/* STATUS */}
+              margin: 14px 0 11px;
+            }
 
-        {status && !error && (
-          <div
-            style={{
-              background:
-                "rgba(34,197,94,0.12)",
+            .divider-line {
+              flex: 1;
+              height: 1px;
 
-              border:
-                "1px solid rgba(34,197,94,0.25)",
+              background: rgba(255, 255, 255, 0.1);
+            }
 
-              color: "#bbf7d0",
+            .divider-text {
+              color: #8f96a3;
 
-              padding: "11px",
+              font-size: 10px;
+              font-weight: 600;
 
-              borderRadius: "8px",
+              letter-spacing: 0.7px;
+            }
 
-              marginBottom: "15px",
+            .login-section {
+              margin-top: 0;
+            }
 
-              fontSize: "14px",
-            }}
-          >
-            {status}
-          </div>
-        )}
+            .login-prompt {
+              margin: 0 0 8px;
 
-        {/* ============================== */}
-        {/* STEP 1 - CONNECT WALLET */}
-        {/* ============================== */}
+              text-align: center;
 
-        {step === 1 && (
-          <>
-            <div
-              style={{
-                background:
-                  "rgba(37,99,235,0.12)",
+              color: #c4c7ce;
 
-                border:
-                  "1px solid rgba(96,165,250,0.25)",
+              font-size: 11.5px;
+            }
 
-                borderRadius: "10px",
+            .register-footer {
+              margin: 11px 0 0;
 
-                padding: "14px",
+              text-align: center;
 
-                marginBottom: "20px",
+              color: #777f8b;
 
-                color: "#bfdbfe",
+              font-size: 10px;
+              line-height: 1.4;
+            }
 
-                fontSize: "13px",
-                lineHeight: "1.6",
-              }}
-            >
-              Connect and verify your MetaMask
-              wallet to begin your secure EVoTE
-              registration.
-            </div>
-
-            <button
-              type="button"
-              onClick={connectWallet}
-              disabled={loading}
-              style={{
-                ...buttonStyle,
-
-                cursor: loading
-                  ? "not-allowed"
-                  : "pointer",
-
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading
-                ? "Please wait..."
-                : "Register with MetaMask"}
-            </button>
-          </>
-        )}
-
-        {/* ============================== */}
-        {/* STEP 2 - PERSONAL DETAILS */}
-        {/* ============================== */}
-
-        {step === 2 && (
-          <form onSubmit={startRegistration}>
-            <div
-              style={{
-                marginBottom: "18px",
-              }}
-            >
-              <h3
-                style={{
-                  margin: "0 0 5px 0",
-                  fontSize: "17px",
-                }}
-              >
-                Personal Information
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#9ca3af",
-                  fontSize: "13px",
-                }}
-              >
-                Enter your details to continue.
-              </p>
-            </div>
-
-            <label style={labelStyle}>
-              Full Name
-            </label>
-
-            <input
-              name="full_name"
-              placeholder="Enter your full name"
-              value={form.full_name}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <label style={labelStyle}>
-              Email Address
-            </label>
-
-            <input
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              value={form.email}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <label style={labelStyle}>
-              Phone Number
-            </label>
-
-            <input
-              name="phone"
-              placeholder="Enter your phone number"
-              value={form.phone}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <label style={labelStyle}>
-              Date of Birth
-            </label>
-
-            <input
-              name="date_of_birth"
-              type="date"
-              value={form.date_of_birth}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...buttonStyle,
-
-                cursor: loading
-                  ? "not-allowed"
-                  : "pointer",
-
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading
-                ? "Saving..."
-: "Continue"}
-            </button>
-          </form>
-        )}
-
-        
-
-        {/* ============================== */}
-        {/* STEP 4 - COMPLETE */}
-        {/* ============================== */}
-
-        {step === 3 && (
-          <>
-            <div
-              style={{
-                marginBottom: "18px",
-              }}
-            >
-              <h3
-                style={{
-                  margin: "0 0 7px 0",
-                  fontSize: "17px",
-                }}
-              >
-                Complete Registration
-              </h3>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: "#9ca3af",
-                  fontSize: "13px",
-                }}
-              >
-                Confirm your registration with MetaMask.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background:
-                  "rgba(37,99,235,0.12)",
-
-                border:
-                  "1px solid rgba(96,165,250,0.25)",
-
-                padding: "14px",
-
-                borderRadius: "10px",
-
-                color: "#bfdbfe",
-
-                fontSize: "13px",
-                lineHeight: "1.7",
-
-                marginBottom: "18px",
-              }}
-            >
-              ✓ Registration details are ready.
-<br />
-✓ Confirm the registration with MetaMask.
-<br />
-✓ No Sepolia ETH is required.
-              <br />
-              ✓ EVoTE sponsors the blockchain
-              transaction.
-            </div>
-
-            <button
-              type="button"
-              onClick={
-                completeGaslessRegistration
+            @media (max-width: 768px) {
+              .register-page {
+                padding: 16px;
               }
-              disabled={loading}
-              style={{
-                ...buttonStyle,
 
-                cursor: loading
-                  ? "not-allowed"
-                  : "pointer",
+              .register-card {
+                max-width: 360px;
+                padding: 20px;
+              }
+            }
 
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading
-                ? "Registering..."
-                : "Complete Registration"}
-            </button>
-          </>
-        )}
+            @media (max-width: 480px) {
+              .register-page {
+                padding: 12px;
+              }
 
-        {/* BACK TO LOGIN */}
+              .register-card {
+                max-width: 100%;
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "21px",
-            marginBottom: "10px",
-            color: "#d1d5db",
-            fontSize: "14px",
-          }}
-        >
-          Already registered?
-        </p>
+                padding: 18px;
 
-        <button
-          type="button"
-          onClick={() =>
-            navigate("/login")
-          }
-          style={{
-            width: "100%",
+                border-radius: 12px;
+              }
 
-            padding: "11px",
+              .register-header {
+                margin-bottom: 13px;
+              }
 
-            background: "transparent",
+              .register-title {
+                font-size: 23px;
+              }
 
-            border:
-              "1px solid rgba(255,255,255,0.3)",
+              .register-subtitle {
+                font-size: 12px;
+              }
 
-            borderRadius: "9px",
+              .step-indicator {
+                margin-bottom: 12px;
+              }
 
-            color: "white",
+              .form-input {
+                height: 37px;
+              }
 
-            fontWeight: "600",
+              .primary-button,
+              .secondary-button {
+                min-height: 39px;
 
-            cursor: "pointer",
-          }}
-        >
-          Back to Login
-        </button>
+                font-size: 12.5px;
+              }
+            }
 
-        <p
-          style={{
-            marginTop: "18px",
-            marginBottom: 0,
+            @media (max-width: 360px) {
+              .register-page {
+                padding: 9px;
+              }
 
-            textAlign: "center",
+              .register-card {
+                padding: 15px;
+              }
 
-            color: "#9ca3af",
+              .register-title {
+                font-size: 22px;
+              }
 
-            fontSize: "12px",
+              .register-caption {
+                font-size: 10.5px;
+              }
 
-            lineHeight: "1.5",
-          }}
-        >
-          Wallet signatures are secure and do not
-          expose your private key.
-        </p>
-      </div>
-    </div>
-  );
+              .info-box,
+              .complete-box,
+              .wallet-box {
+                padding: 8px 9px;
+
+                font-size: 11px;
+              }
+
+              .form-group {
+                margin-bottom: 9px;
+              }
+
+              .form-input {
+                height: 36px;
+
+                font-size: 11.5px;
+              }
+            }
+
+            @media (max-height: 650px) {
+              .register-page {
+                align-items: flex-start;
+
+                padding-top: 10px;
+                padding-bottom: 10px;
+              }
+
+              .register-card {
+                padding-top: 16px;
+                padding-bottom: 16px;
+              }
+
+              .register-header {
+                margin-bottom: 11px;
+              }
+
+              .step-indicator {
+                margin-bottom: 10px;
+              }
+
+              .login-section {
+                margin-top: 11px;
+              }
+
+              .register-footer {
+                margin-top: 9px;
+              }
+            }
+          `}
+        </style>
+
+        <div className="register-page">
+          <div className="register-card">
+            {/* HEADER */}
+            <div className="register-header">
+              <h1 className="register-title">
+                EVoTE ⬢
+              </h1>
+
+              <p className="register-subtitle">
+                Secure Blockchain Voting
+              </p>
+
+              <p className="register-caption">
+                Create your voter account securely
+              </p>
+            </div>
+
+            {/* STEP INDICATOR */}
+            <div className="step-indicator">
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="step-bar"
+                  style={{
+                    width: item === step ? "30px" : "21px",
+                    background:
+                      item <= step
+                        ? "#f97316"
+                        : "rgba(255,255,255,0.18)",
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* WALLET */}
+            {wallet && (
+              <div className="wallet-box">
+                <span className="wallet-label">
+                  Connected Wallet
+                </span>
+                {wallet}
+              </div>
+            )}
+
+            {/* ERROR */}
+            {error && (
+              <div className="error-box">
+                <div className="error-icon">
+                  !
+                </div>
+
+                <div style={{ minWidth: 0 }}>
+                  <div className="error-title">
+                    Registration could not be completed
+                  </div>
+
+                  <div className="error-message">
+                    {error}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STATUS */}
+            {status && !error && (
+              <div className="status-box">
+                {status}
+              </div>
+            )}
+
+            {/* STEP 1 - CONNECT WALLET */}
+            {step === 1 && (
+              <>
+                <div className="info-box">
+                  Connect and verify your MetaMask wallet to begin your secure
+                  EVoTE registration.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={connectWallet}
+                  disabled={loading}
+                  className="primary-button"
+                >
+                  {loading
+                    ? "Please wait..."
+                    : "Register with MetaMask"}
+                </button>
+              </>
+            )}
+
+            {/* STEP 2 - PERSONAL DETAILS */}
+            {step === 2 && (
+              <form onSubmit={startRegistration}>
+                <div className="step-heading">
+                  <h3 className="step-title">
+                    Personal Information
+                  </h3>
+
+                  <p className="step-description">
+                    Enter your details to continue.
+                  </p>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    Full Name
+                  </label>
+
+                  <input
+                    name="full_name"
+                    placeholder="Enter your full name"
+                    value={form.full_name}
+                    onChange={handleChange}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    Email Address
+                  </label>
+
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    Phone Number
+                  </label>
+
+                  <input
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    Date of Birth
+                  </label>
+
+                  <input
+                    name="date_of_birth"
+                    type="date"
+                    value={form.date_of_birth}
+                    onChange={handleChange}
+                    className="form-input"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="primary-button"
+                >
+                  {loading
+                    ? "Saving..."
+                    : "Continue"}
+                </button>
+              </form>
+            )}
+
+            {/* STEP 3 - COMPLETE */}
+            {step === 3 && (
+              <>
+                <div className="step-heading">
+                  <h3 className="step-title">
+                    Complete Registration
+                  </h3>
+
+                  <p className="step-description">
+                    Confirm your registration with MetaMask.
+                  </p>
+                </div>
+
+                <div className="complete-box">
+                  ✓ Registration details are ready.
+                  <br />
+                  ✓ Confirm the registration with MetaMask.
+                  <br />
+                  ✓ No Sepolia ETH is required.
+                  <br />
+                  ✓ EVoTE sponsors the blockchain transaction.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={completeGaslessRegistration}
+                  disabled={loading}
+                  className="primary-button"
+                >
+                  {loading
+                    ? "Registering..."
+                    : "Complete Registration"}
+                </button>
+              </>
+            )}
+
+            {/* DIVIDER */}
+            <div className="divider">
+              <div className="divider-line" />
+
+              <span className="divider-text">
+                OR
+              </span>
+
+              <div className="divider-line" />
+            </div>
+
+            {/* BACK TO LOGIN */}
+            <div className="login-section">
+              <p className="login-prompt">
+                Already registered?
+              </p>
+
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="secondary-button"
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
 }
-
-const labelStyle = {
-  display: "block",
-
-  color: "#d1d5db",
-
-  fontSize: "13px",
-
-  fontWeight: "500",
-
-  marginBottom: "7px",
-};
-
-const inputStyle = {
-  width: "100%",
-
-  boxSizing: "border-box",
-
-  padding: "12px",
-
-  marginBottom: "15px",
-
-  borderRadius: "9px",
-
-  border:
-    "1px solid rgba(255,255,255,0.25)",
-
-  background:
-    "rgba(15,23,42,0.55)",
-
-  color: "white",
-
-  outline: "none",
-
-  fontSize: "14px",
-};
-
-const buttonStyle = {
-  width: "100%",
-
-  padding: "13px",
-
-  border: "none",
-
-  borderRadius: "9px",
-
-  background:
-    "linear-gradient(135deg,#f97316,#f59e0b)",
-
-  color: "white",
-
-  fontSize: "15px",
-
-  fontWeight: "700",
-
-  cursor: "pointer",
-};
 
 export default Register;

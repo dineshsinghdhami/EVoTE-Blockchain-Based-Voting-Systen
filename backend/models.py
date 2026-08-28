@@ -200,12 +200,12 @@ class PendingWalletRegistration(Base):
 
     otp = Column(
         String,
-        nullable=False
+        nullable=True
     )
 
     otp_expires = Column(
         DateTime,
-        nullable=False
+        nullable=True
     )
     email_verified = Column(
     Boolean,

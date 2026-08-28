@@ -20,6 +20,7 @@ from blockchain import (
     encode_register_user,
     encode_become_candidate,
     relay_signed_request,
+    verify_signed_request,
     get_user_blockchain,
     get_institution_name,
     get_organization_name,
@@ -369,7 +370,7 @@ def get_candidate_eligible_voters(
         if min_age <= age <= max_age:
             eligible_users.append(user)
 
-        return eligible_users
+    return eligible_users
 
 
 async def voting_notification_worker():
@@ -609,12 +610,42 @@ def metamask_verify(
         .first()
     )
 
-    # New wallet: frontend should send user to registration.
+        # --------------------------------------------------------
+    # CHECK BLOCKCHAIN IF USER IS MISSING FROM POSTGRESQL
+    # --------------------------------------------------------
+
     if not user:
+
+        blockchain_user = get_user_blockchain(wallet)
+
+        if blockchain_user["registered"]:
+
+            blockchain_role = int(
+                blockchain_user["role"]
+            )
+
+            role_map = {
+                1: "voter",
+                2: "admin",
+                3: "superadmin",
+            }
+
+            return {
+                "verified": True,
+                "wallet_address": wallet,
+                "registered": False,
+                "blockchain_registered": True,
+                "role": role_map.get(blockchain_role),
+                "full_name": blockchain_user["full_name"],
+                "date_of_birth": blockchain_user["date_of_birth"],
+                "active": blockchain_user["active"]
+            }
+
         return {
             "verified": True,
             "wallet_address": wallet,
             "registered": False,
+            "blockchain_registered": False,
             "role": None
         }
 
@@ -2296,17 +2327,114 @@ def relay_blockchain_registration(
 
     blockchain_user = get_user_blockchain(wallet)
 
-    if (
-        blockchain_user["registered"]
-        and int(blockchain_user["role"]) == 3
-    ):
+    # --------------------------------------------------------
+    # BLOCKCHAIN / DATABASE SYNCHRONIZATION
+    #
+    # If the wallet already exists on Sepolia but is missing
+    # from PostgreSQL, DO NOT register it on blockchain again.
+    # Restore/synchronize the PostgreSQL user instead.
+    # --------------------------------------------------------
+
+    if blockchain_user["registered"]:
+
+        blockchain_role = int(
+            blockchain_user["role"]
+        )
+
+        role_map = {
+            1: "voter",
+            2: "admin",
+            3: "superadmin",
+        }
+
+        user_role = role_map.get(
+            blockchain_role
+        )
+
+        if not user_role:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid blockchain user role"
+            )
+
+        # Make sure the blockchain account is active.
+        if not blockchain_user["active"]:
+            raise HTTPException(
+                status_code=403,
+                detail="This blockchain account is inactive"
+            )
+
+        # Verify that this request was really signed
+        # by the wallet owner before restoring
+        # the PostgreSQL account.
+        try:
+            signature_valid = verify_signed_request(
+                from_address=wallet,
+                to_address=data["to_address"],
+                value=int(data["value"]),
+                gas=int(data["gas"]),
+                deadline=int(data["deadline"]),
+                data=data["data"],
+                signature=data["signature"]
+            )
+        except Exception as error:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Invalid registration signature: "
+                    f"{str(error)}"
+                )
+            )
+
+        if not signature_valid:
+            raise HTTPException(
+                status_code=401,
+                detail=(
+                    "Registration signature "
+                    "does not match wallet"
+                )
+            )
+
+        # Make sure the email is not already used
+        # by another PostgreSQL account.
+        existing_email = (
+            db.query(User)
+            .filter(
+                User.email == pending.email
+            )
+            .first()
+        )
+
+        if existing_email:
+            raise HTTPException(
+                status_code=400,
+                detail="Email is already registered"
+            )
+
+        # Make sure the phone is not already used
+        # by another PostgreSQL account.
+        existing_phone = (
+            db.query(User)
+            .filter(
+                User.phone == pending.phone
+            )
+            .first()
+        )
+
+        if existing_phone:
+            raise HTTPException(
+                status_code=400,
+                detail="Phone number is already registered"
+            )
+
+        # Restore the user in PostgreSQL.
         new_user = User(
             username=None,
             full_name=pending.full_name,
             email=pending.email,
             phone=pending.phone,
             password_hash=None,
-            role="superadmin",
+            role=user_role,
             wallet_address=wallet,
             date_of_birth=pending.date_of_birth,
             profile_picture=None,
@@ -2317,27 +2445,48 @@ def relay_blockchain_registration(
         )
 
         db.add(new_user)
+
+        # Pending registration is no longer needed.
         db.delete(pending)
+
         db.commit()
         db.refresh(new_user)
 
+        # Create normal login token.
         token = create_access_token({
             "user_id": new_user.id,
-            "role": "superadmin",
+            "role": new_user.role,
             "wallet_address": wallet
         })
 
         return {
-            "message": "SuperAdmin account synchronized successfully",
-            "access_token": token,
-            "token_type": "bearer",
+            "message":
+                "Existing blockchain account synchronized successfully",
+
+            "access_token":
+                token,
+
+            "token_type":
+                "bearer",
+
             "user": {
-                "id": new_user.id,
-                "full_name": new_user.full_name,
-                "email": new_user.email,
-                "phone": new_user.phone,
-                "role": "superadmin",
-                "wallet_address": new_user.wallet_address
+                "id":
+                    new_user.id,
+
+                "full_name":
+                    new_user.full_name,
+
+                "email":
+                    new_user.email,
+
+                "phone":
+                    new_user.phone,
+
+                "role":
+                    new_user.role,
+
+                "wallet_address":
+                    new_user.wallet_address
             }
         }
 
