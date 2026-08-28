@@ -205,6 +205,8 @@ function Register() {
 
       const selectedWallet = accounts[0];
 
+      setWallet(selectedWallet);
+
       // Request authentication nonce
       const nonceResponse = await fetch(
         `${API_URL}/auth/metamask/nonce`,
@@ -265,7 +267,7 @@ function Register() {
             "Wallet verification failed."
         );
       }
-      setWallet(selectedWallet);
+      
 
       // Already registered → send to login/dashboard
       if (verifyData.registered) {

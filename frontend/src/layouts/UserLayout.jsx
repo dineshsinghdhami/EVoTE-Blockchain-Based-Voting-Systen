@@ -342,39 +342,42 @@ function UserLayout() {
       </main>
 
       {/* LOGOUT MODAL */}
-      {showLogoutModal && (
-        <div className="logout-overlay">
-          <div className="logout-box">
+{showLogoutModal && (
+  <div className="logout-overlay">
 
-            <h3>Logout</h3>
+    <div className="logout-box">
 
-            <p>
-              Are you sure you want to logout?
-            </p>
+      <h3>
+        Logout
+      </h3>
 
-            <div className="logout-actions">
+      <p>
+        Are you sure you want to logout?
+      </p>
 
-              <button
-                className="btn logout-yes"
-                onClick={logout}
-              >
-                Yes
-              </button>
+      <div className="logout-actions">
 
-              <button
-                className="btn logout-no"
-                onClick={() =>
-                  setShowLogoutModal(false)
-                }
-              >
-                No
-              </button>
+        <button
+          className="danger-btn"
+          onClick={logout}
+        >
+          Yes
+        </button>
 
-            </div>
+        <button
+          className="secondary-btn"
+          onClick={() =>
+            setShowLogoutModal(false)
+          }
+        >
+          No
+        </button>
 
-          </div>
-        </div>
-      )}
+      </div>
+
+    </div>
+  </div>
+)}
 
     </div>
   );

@@ -433,9 +433,6 @@ const chartData = Array.from({ length: 7 }).map((_, index) => {
           </h3>
         </div>
 
-        <div className={`dashboard-stat-status ${stat.type}`}>
-          <span />
-        </div>
       </article>
     ))
   )}

@@ -12661,3 +12661,47 @@ input:-webkit-autofill:focus {
 
   background: transparent;
 }
+
+/* =========================================================
+   SHARED COMPACT LOGOUT MODAL - ADMIN + USER
+   ========================================================= */
+
+.logout-box {
+  width: 320px;
+  padding: 24px 26px;
+  text-align: center;
+  background: #292929;
+  border: 1px solid #3a3a3a;
+  border-radius: 14px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  color: white;
+}
+
+.logout-box h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: white;
+}
+
+.logout-box p {
+  margin: 0;
+  color: #bdbdbd;
+  font-size: 14px;
+}
+
+.logout-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.logout-actions .danger-btn,
+.logout-actions .secondary-btn {
+  flex: none;
+  min-width: 74px;
+  min-height: 42px;
+  padding: 10px 18px;
+  border-radius: 9px;
+  font-weight: 700;
+}
