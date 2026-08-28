@@ -57,80 +57,89 @@ function CandidateVoting() {
   setLoading(true);
 
   try {
-    const contract = await getContract();
+    const contract =
+      await getContract();
 
     if (!contract) {
-      setLoading(false);
+      setCandidates([]);
       return;
     }
 
-    // -----------------------------------------------------
-    // INSTITUTION
-    // -----------------------------------------------------
+    const institutionId =
+      Number(instId);
 
-    const institutionData =
-      await contract.institutions(
-        Number(instId)
-      );
+    const organizationId =
+      Number(orgId);
+
+    const currentPostId =
+      Number(postId);
+
+
+    // =====================================================
+    // 1. LOAD INSTITUTION + ORGANIZATION + POST TOGETHER
+    // =====================================================
+
+    const [
+      institutionData,
+      organizationData,
+      postData,
+    ] = await Promise.all([
+      contract.institutions(
+        institutionId
+      ),
+
+      contract.getOrganization(
+        institutionId,
+        organizationId
+      ),
+
+      contract.getPost(
+        institutionId,
+        organizationId,
+        currentPostId
+      ),
+    ]);
+
 
     setInstitutionName(
       institutionData.name
     );
 
-    // -----------------------------------------------------
-    // ORGANIZATION
-    //
-    // New contract:
-    // 0 = id
-    // 1 = name
-    // 2 = exists
-    // 3 = postCount
-    // -----------------------------------------------------
-
-    const organizationData =
-      await contract.getOrganization(
-        Number(instId),
-        Number(orgId)
-      );
 
     setOrganizationName(
       organizationData.name ||
         organizationData[1]
     );
 
-    // -----------------------------------------------------
-    // POST
-    // -----------------------------------------------------
-
-    const postData =
-      await contract.getPost(
-        Number(instId),
-        Number(orgId),
-        Number(postId)
-      );
 
     const loadedPost = {
-      id: Number(postData.id),
+      id:
+        Number(postData.id),
 
-      title: String(
-        postData.title || ""
-      ),
+      title:
+        String(
+          postData.title || ""
+        ),
 
-      active: Boolean(
-        postData.active
-      ),
+      active:
+        Boolean(
+          postData.active
+        ),
 
-      seatLimit: Number(
-        postData.seatCount
-      ),
+      seatLimit:
+        Number(
+          postData.seatCount
+        ),
 
-      maxCandidateCount: Number(
-        postData.maxCandidateCount
-      ),
+      maxCandidateCount:
+        Number(
+          postData.maxCandidateCount
+        ),
 
-      candidateCount: Number(
-        postData.candidateCount
-      ),
+      candidateCount:
+        Number(
+          postData.candidateCount
+        ),
 
       candidateRegistrationStart:
         Number(
@@ -142,129 +151,302 @@ function CandidateVoting() {
           postData.candidateRegistrationEnd
         ),
 
-      startDate: Number(
-        postData.votingStart
-      ),
+      startDate:
+        Number(
+          postData.votingStart
+        ),
 
-      endDate: Number(
-        postData.votingEnd
-      ),
+      endDate:
+        Number(
+          postData.votingEnd
+        ),
     };
 
-    setPost(loadedPost);
 
-    // -----------------------------------------------------
-    // CANDIDATES
-    // -----------------------------------------------------
+    setPost(
+      loadedPost
+    );
 
-    const temp = [];
+
+    // =====================================================
+    // 2. LOAD ALL CANDIDATES TOGETHER
+    // =====================================================
+
+    const candidatePromises = [];
 
     for (
       let i = 1;
       i <= loadedPost.candidateCount;
       i++
     ) {
-      const candidate =
-        await contract.getCandidate(
-          Number(instId),
-          Number(orgId),
-          Number(postId),
-          i
-        );
-
-      let alreadyVoted = false;
-
-      if (account) {
-        alreadyVoted =
-          await contract.hasVotedCandidate(
-            Number(instId),
-            Number(orgId),
-            Number(postId),
-            account,
+      candidatePromises.push(
+        contract
+          .getCandidate(
+            institutionId,
+            organizationId,
+            currentPostId,
             i
-          );
-      }
-
-      let voteTxHash = null;
-
-      // ---------------------------------------------------
-      // LOAD SAVED VOTE TRANSACTION HASH
-      // ---------------------------------------------------
-
-      if (alreadyVoted && user?.id) {
-        try {
-          const token =
-            localStorage.getItem("access_token") ||
-            localStorage.getItem("token");
-
-          const voteRecordRes =
-            await axios.get(
-              `${API_URL}/vote-record/${user.id}/${Number(instId)}/${Number(postId)}/${i}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (voteRecordRes.data?.found) {
-            voteTxHash =
-              voteRecordRes.data.tx_hash;
-          }
-        } catch (voteRecordError) {
-          console.log(
-            "Vote transaction hash not available from backend:",
-            voteRecordError
-          );
-        }
-      }
-
-      if (!voteTxHash && alreadyVoted && account) {
-        const storageKey =
-          getVoteTxStorageKey(
-            account,
-            Number(instId),
-            Number(orgId),
-            Number(postId),
-            i
-          );
-
-        if (storageKey) {
-          voteTxHash =
-            localStorage.getItem(
-              storageKey
-            );
-        }
-      }
-
-      temp.push({
-        id: Number(candidate.id),
-
-        wallet:
-          candidate.wallet,
-
-        name:
-          String(
-            candidate.name || ""
-          ),
-
-        voteCount: 0,
-
-        exists:
-          Boolean(
-            candidate.exists
-          ),
-
-        alreadyVoted,
-        voteTxHash,
-      });
+          )
+          .then((candidate) => ({
+            index: i,
+            candidate,
+          }))
+      );
     }
 
-    // -----------------------------------------------------
-    // OPTIONAL PROFILE INFORMATION
-    // -----------------------------------------------------
+
+    const candidateResults =
+      await Promise.all(
+        candidatePromises
+      );
+
+
+    // =====================================================
+    // 3. CHECK VOTE STATUS FOR ALL CANDIDATES TOGETHER
+    // =====================================================
+
+    let votedStatusResults = [];
+
+
+    if (account) {
+      const votedPromises =
+        candidateResults.map(
+          ({ index }) =>
+            contract
+              .hasVotedCandidate(
+                institutionId,
+                organizationId,
+                currentPostId,
+                account,
+                index
+              )
+              .then(
+                (alreadyVoted) => ({
+                  index,
+                  alreadyVoted:
+                    Boolean(
+                      alreadyVoted
+                    ),
+                })
+              )
+        );
+
+
+      votedStatusResults =
+        await Promise.all(
+          votedPromises
+        );
+
+    } else {
+      votedStatusResults =
+        candidateResults.map(
+          ({ index }) => ({
+            index,
+            alreadyVoted: false,
+          })
+        );
+    }
+
+
+    const votedStatusMap =
+      new Map(
+        votedStatusResults.map(
+          (item) => [
+            item.index,
+            item.alreadyVoted,
+          ]
+        )
+      );
+
+
+    // =====================================================
+    // 4. PREPARE BASE CANDIDATE LIST
+    // =====================================================
+
+    const temp =
+      candidateResults.map(
+        ({
+          index,
+          candidate,
+        }) => ({
+          id:
+            Number(
+              candidate.id
+            ),
+
+          wallet:
+            candidate.wallet,
+
+          name:
+            String(
+              candidate.name || ""
+            ),
+
+          voteCount: 0,
+
+          exists:
+            Boolean(
+              candidate.exists
+            ),
+
+          alreadyVoted:
+            votedStatusMap.get(
+              index
+            ) || false,
+
+          voteTxHash: null,
+
+          candidateIndex:
+            index,
+        })
+      );
+
+
+    // =====================================================
+    // 5. LOAD SAVED VOTE TRANSACTION HASHES IN PARALLEL
+    // =====================================================
+
+    const token =
+      localStorage.getItem(
+        "access_token"
+      ) ||
+      localStorage.getItem(
+        "token"
+      );
+
+
+    const voteRecordPromises =
+      temp.map(
+        async (candidate) => {
+
+          if (
+            !candidate.alreadyVoted ||
+            !user?.id ||
+            !token
+          ) {
+            return {
+              candidateIndex:
+                candidate.candidateIndex,
+
+              voteTxHash:
+                null,
+            };
+          }
+
+
+          try {
+            const voteRecordRes =
+              await axios.get(
+                `${API_URL}/vote-record/${user.id}/${institutionId}/${currentPostId}/${candidate.candidateIndex}`,
+                {
+                  headers: {
+                    Authorization:
+                      `Bearer ${token}`,
+                  },
+                }
+              );
+
+
+            if (
+              voteRecordRes.data?.found
+            ) {
+              return {
+                candidateIndex:
+                  candidate.candidateIndex,
+
+                voteTxHash:
+                  voteRecordRes.data.tx_hash,
+              };
+            }
+
+          } catch (voteRecordError) {
+            console.log(
+              "Vote transaction hash not available from backend:",
+              voteRecordError
+            );
+          }
+
+
+          return {
+            candidateIndex:
+              candidate.candidateIndex,
+
+            voteTxHash:
+              null,
+          };
+        }
+      );
+
+
+    const voteRecordResults =
+      await Promise.all(
+        voteRecordPromises
+      );
+
+
+    const voteRecordMap =
+      new Map(
+        voteRecordResults.map(
+          (item) => [
+            item.candidateIndex,
+            item.voteTxHash,
+          ]
+        )
+      );
+
+
+    // =====================================================
+    // 6. FALLBACK TO LOCAL STORAGE
+    // =====================================================
+
+    const candidatesWithTx =
+      temp.map(
+        (candidate) => {
+
+          let voteTxHash =
+            voteRecordMap.get(
+              candidate.candidateIndex
+            ) || null;
+
+
+          if (
+            !voteTxHash &&
+            candidate.alreadyVoted &&
+            account
+          ) {
+            const storageKey =
+              getVoteTxStorageKey(
+                account,
+                institutionId,
+                organizationId,
+                currentPostId,
+                candidate.candidateIndex
+              );
+
+
+            if (storageKey) {
+              voteTxHash =
+                localStorage.getItem(
+                  storageKey
+                );
+            }
+          }
+
+
+          return {
+            ...candidate,
+            voteTxHash,
+          };
+        }
+      );
+
+
+    // =====================================================
+    // 7. LOAD PROFILE PHOTOS
+    // =====================================================
 
     let profiles = [];
+
 
     try {
       const profileRes =
@@ -272,11 +454,14 @@ function CandidateVoting() {
           `${API_URL}/candidate-profiles/${instId}/${postId}`
         );
 
-      profiles = Array.isArray(
-        profileRes.data
-      )
-        ? profileRes.data
-        : [];
+
+      profiles =
+        Array.isArray(
+          profileRes.data
+        )
+          ? profileRes.data
+          : [];
+
     } catch (profileError) {
       console.log(
         "Candidate profiles not available:",
@@ -286,56 +471,72 @@ function CandidateVoting() {
       profiles = [];
     }
 
+
     const finalCandidates =
-      temp.map((candidate) => {
-        const profile =
-          profiles.find((p) => {
-            if (
-              !p.wallet_address ||
-              !candidate.wallet
-            ) {
-              return false;
-            }
+      candidatesWithTx.map(
+        (candidate) => {
 
-            return (
-              p.wallet_address.toLowerCase() ===
-              candidate.wallet.toLowerCase()
+          const profile =
+            profiles.find(
+              (p) => {
+
+                if (
+                  !p.wallet_address ||
+                  !candidate.wallet
+                ) {
+                  return false;
+                }
+
+
+                return (
+                  p.wallet_address.toLowerCase() ===
+                  candidate.wallet.toLowerCase()
+                );
+              }
             );
-          });
 
-        return {
-          ...candidate,
 
-          // Reuse the normal EVoTE user's profile picture.
-          photo:
-            profile?.photo || "",
-        };
-      });
+          return {
+            ...candidate,
 
-    // -----------------------------------------------------
-    // CURRENT USER VOTE COUNT
-    // -----------------------------------------------------
+            photo:
+              profile?.photo || "",
+          };
+        }
+      );
+
+
+    // =====================================================
+    // 8. LOAD CURRENT USER VOTE COUNT
+    // =====================================================
 
     let countVotes = 0;
 
+
     if (account) {
-      countVotes = Number(
-        await contract.userVoteCount(
-          Number(instId),
-          Number(orgId),
-          Number(postId),
-          account
-        )
-      );
+      countVotes =
+        Number(
+          await contract.userVoteCount(
+            institutionId,
+            organizationId,
+            currentPostId,
+            account
+          )
+        );
     }
+
 
     setUserVoteCount(
       countVotes
     );
 
+
     setCandidates(
       finalCandidates
     );
+
+
+    setMessage("");
 
   } catch (err) {
     console.error(
@@ -343,15 +544,18 @@ function CandidateVoting() {
       err
     );
 
+
     setCandidates([]);
+
 
     setMessage(
       err?.message ||
         "Failed to load candidates"
     );
-  }
 
-  setLoading(false);
+  } finally {
+    setLoading(false);
+  }
 }
 
   function askForVoteConfirmation(candidate) {

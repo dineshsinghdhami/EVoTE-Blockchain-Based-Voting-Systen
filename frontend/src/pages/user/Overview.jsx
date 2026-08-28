@@ -47,24 +47,45 @@ function Overview() {
 
     activeElectionsLoading,
     loadActiveElections,
+    dashboardDataLoaded,
   } = useVoting();
 
-  useEffect(() => {
-    if (window.ethereum) {
-      loadInstitutionCount();
-      loadActiveElections();
-    }
+  // =====================================================
+// LOAD TRANSACTIONS ONLY ONCE
+// =====================================================
 
-    loadTransactions();
+useEffect(() => {
+  loadTransactions();
 
-    const interval = setInterval(() => {
-      loadTransactions();
-    }, 3000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
-    return () => clearInterval(interval);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account]);
+// =====================================================
+// LOAD BLOCKCHAIN DASHBOARD DATA
+// WHEN WALLET IS AVAILABLE
+// =====================================================
+
+useEffect(() => {
+  if (!window.ethereum) {
+    return;
+  }
+
+  if (!account) {
+    return;
+  }
+
+  // If dashboard blockchain data was already
+  // loaded during this session, reuse it.
+  if (dashboardDataLoaded) {
+    return;
+  }
+
+  loadInstitutionCount();
+  loadActiveElections();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [account, dashboardDataLoaded]);
 
   /* =========================================================
      QUICK ACTIONS

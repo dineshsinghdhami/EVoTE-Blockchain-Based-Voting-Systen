@@ -19,7 +19,15 @@ const MODE_COPY = {
 
 function InstitutionList({ mode }) {
   const navigate = useNavigate();
-  const { getContract, setMessage, account } = useVoting();
+  const {
+  getContract,
+  setMessage,
+  account,
+  cachedInstitutions,
+  setCachedInstitutions,
+  institutionsLoaded,
+  setInstitutionsLoaded,
+} = useVoting();
 
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,32 +41,99 @@ function InstitutionList({ mode }) {
   }, [account]);
 
   async function loadInstitutions() {
-    setLoading(true);
-    try {
-      const contract = await getContract();
-      if (!contract) {
-        setLoading(false);
-        return;
-      }
+  // =====================================================
+  // USE CACHE IF INSTITUTIONS WERE ALREADY LOADED
+  // =====================================================
 
-      const count = Number(await contract.institutionCount());
-      const temp = [];
+  if (institutionsLoaded) {
+    setInstitutions(cachedInstitutions);
+    setLoading(false);
+    return;
+  }
 
-      for (let i = 1; i <= count; i++) {
-        const institution = await contract.institutions(i);
-        temp.push({
-          id: i,
-          name: institution.name,
-          organizationCount: Number(institution.organizationCount),
-        });
-      }
+  setLoading(true);
 
-      setInstitutions(temp);
-    } catch {
-      setMessage("Failed to load institutions");
+  try {
+    const contract =
+      await getContract();
+
+    if (!contract) {
+      setInstitutions([]);
+      return;
     }
+
+    const count =
+      Number(
+        await contract.institutionCount()
+      );
+
+    if (count === 0) {
+      setInstitutions([]);
+      setCachedInstitutions([]);
+      setInstitutionsLoaded(true);
+      return;
+    }
+
+    // =====================================================
+    // LOAD ALL INSTITUTIONS TOGETHER
+    // =====================================================
+
+    const institutionPromises = [];
+
+    for (
+      let i = 1;
+      i <= count;
+      i++
+    ) {
+      institutionPromises.push(
+        contract
+          .institutions(i)
+          .then((institution) => ({
+            id: i,
+
+            name:
+              institution.name,
+
+            organizationCount:
+              Number(
+                institution.organizationCount
+              ),
+          }))
+      );
+    }
+
+    const results =
+      await Promise.all(
+        institutionPromises
+      );
+
+    // Show on current page
+    setInstitutions(results);
+
+    // Save globally for future navigation
+    setCachedInstitutions(results);
+
+    // Mark successful blockchain load
+    setInstitutionsLoaded(true);
+
+    setMessage("");
+
+  } catch (err) {
+    console.error(
+      "Failed to load institutions:",
+      err
+    );
+
+    setInstitutions([]);
+
+    setMessage(
+      "Failed to load institutions"
+    );
+
+  } finally {
     setLoading(false);
   }
+}
 
   const filteredInstitutions = institutions.filter((institution) =>
     institution.name.toLowerCase().includes(searchTerm.toLowerCase())

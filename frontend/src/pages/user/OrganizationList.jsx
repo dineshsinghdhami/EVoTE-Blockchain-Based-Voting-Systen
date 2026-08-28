@@ -12,7 +12,13 @@ const MODE_DESC = {
 function OrganizationList({ mode }) {
   const navigate = useNavigate();
   const { instId } = useParams();
-  const { getContract, setMessage, account } = useVoting();
+  const {
+  getContract,
+  setMessage,
+  account,
+  cachedOrganizations,
+  setCachedOrganizations,
+} = useVoting();
 
   const [institutionName, setInstitutionName] = useState("");
   const [organizations, setOrganizations] = useState([]);
@@ -25,37 +31,146 @@ function OrganizationList({ mode }) {
   }, [instId, account]);
 
   async function loadOrganizations() {
-    setLoading(true);
-    try {
-      const contract = await getContract();
-      if (!contract) {
-        setLoading(false);
-        return;
-      }
+  // Use already-loaded organization data when returning
+  // to this institution. This avoids repeated blockchain calls.
+  const cachedData =
+    cachedOrganizations[instId];
 
-      const institutionData = await contract.institutions(Number(instId));
-      setInstitutionName(institutionData.name);
+  if (cachedData !== undefined) {
+    setInstitutionName(
+      cachedData.institutionName
+    );
 
-      const count = Number(institutionData.organizationCount);
-      let temp = [];
+    setOrganizations(
+      cachedData.organizations
+    );
 
-      for (let i = 1; i <= count; i++) {
-        const org = await contract.getOrganization(Number(instId), i);
-        temp.push({
-  id: Number(org[0]),
-  name: org[1],
-  exists: org[2],
-  postCount: Number(org[3]),
-});
-      }
+    setLoading(false);
+    return;
+  }
 
-      setOrganizations(temp);
-      setMessage("");
-    } catch {
-      setMessage("Failed to load organizations");
+  setLoading(true);
+
+  try {
+    const contract =
+      await getContract();
+
+    if (!contract) {
+      setOrganizations([]);
+      return;
     }
+
+    // =====================================================
+    // LOAD SELECTED INSTITUTION
+    // =====================================================
+
+    const institutionData =
+      await contract.institutions(
+        Number(instId)
+      );
+
+    setInstitutionName(
+      institutionData.name
+    );
+
+    const count =
+      Number(
+        institutionData.organizationCount
+      );
+
+    if (count === 0) {
+  setOrganizations([]);
+
+  setCachedOrganizations(
+    (previousCache) => ({
+      ...previousCache,
+
+      [instId]: {
+        institutionName:
+          institutionData.name,
+
+        organizations: [],
+      },
+    })
+  );
+
+  setMessage("");
+  return;
+}
+
+    // =====================================================
+    // LOAD ALL ORGANIZATIONS TOGETHER
+    // =====================================================
+
+    const organizationPromises = [];
+
+    for (
+      let i = 1;
+      i <= count;
+      i++
+    ) {
+      organizationPromises.push(
+        contract
+          .getOrganization(
+            Number(instId),
+            i
+          )
+          .then((org) => ({
+            id: Number(org[0]),
+            name: org[1],
+            exists: Boolean(org[2]),
+            postCount: Number(org[3]),
+          }))
+      );
+    }
+
+    const results =
+      await Promise.all(
+        organizationPromises
+      );
+
+    // Only keep valid organizations.
+    const validOrganizations =
+      results.filter(
+        (org) => org.exists
+      );
+
+    setOrganizations(
+  validOrganizations
+);
+
+setCachedOrganizations(
+  (previousCache) => ({
+    ...previousCache,
+
+    [instId]: {
+      institutionName:
+        institutionData.name,
+
+      organizations:
+        validOrganizations,
+    },
+  })
+);
+
+setMessage("");
+
+  } catch (err) {
+    console.error(
+      "Failed to load organizations:",
+      err
+    );
+
+    setOrganizations([]);
+
+    setMessage(
+      "Failed to load organizations"
+    );
+
+  } finally {
     setLoading(false);
   }
+}
 
   const filteredOrganizations = organizations.filter((org) =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase())

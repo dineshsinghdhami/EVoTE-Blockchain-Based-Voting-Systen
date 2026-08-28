@@ -9,15 +9,12 @@ import {
 import { ethers } from "ethers";
 import axios from "axios";
 
-
-
 import {
   CONTRACT_ADDRESS,
   CONTRACT_ABI,
 } from "../contract/contract";
 
 const VotingContext = createContext(null);
-
 
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
 
@@ -39,6 +36,7 @@ function getFriendlyApiError(
     fallback
   );
 }
+
 
 export function VotingProvider({ children }) {
   const savedUser = JSON.parse(
@@ -141,24 +139,59 @@ export function VotingProvider({ children }) {
   ] = useState(0);
 
   const [
-  institutionCountLoading,
-  setInstitutionCountLoading,
-] = useState(false);
+    institutionCountLoading,
+    setInstitutionCountLoading,
+  ] = useState(false);
+
+
+  // =====================================================
+  // INSTITUTION LIST CACHE
+  // =====================================================
 
   const [
-  activeElections,
-  setActiveElections,
-] = useState([]);
+    cachedInstitutions,
+    setCachedInstitutions,
+  ] = useState([]);
 
-const [
-  upcomingElections,
-  setUpcomingElections,
-] = useState([]);
+  const [
+    institutionsLoaded,
+    setInstitutionsLoaded,
+  ] = useState(false);
 
-const [
-  activeElectionsLoading,
-  setActiveElectionsLoading,
-] = useState(false);
+
+  // =====================================================
+  // ORGANIZATION LIST CACHE
+  // =====================================================
+
+  const [
+    cachedOrganizations,
+    setCachedOrganizations,
+  ] = useState({});
+
+
+  // =====================================================
+  // DASHBOARD ELECTION STATE
+  // =====================================================
+
+  const [
+    activeElections,
+    setActiveElections,
+  ] = useState([]);
+
+  const [
+    upcomingElections,
+    setUpcomingElections,
+  ] = useState([]);
+
+  const [
+    activeElectionsLoading,
+    setActiveElectionsLoading,
+  ] = useState(false);
+
+  const [
+    dashboardDataLoaded,
+    setDashboardDataLoaded,
+  ] = useState(false);
 
 
   // =====================================================
@@ -166,11 +199,12 @@ const [
   // =====================================================
 
   const profileImage =
-  user?.profile_picture
-    ? `${API_URL}/${user.profile_picture}?v=${
-        user.profile_picture_version || ""
-      }`
-    : null;
+    user?.profile_picture
+      ? `${API_URL}/${user.profile_picture}?v=${
+          user.profile_picture_version || ""
+        }`
+      : null;
+
 
   // =====================================================
   // CONTRACT
@@ -533,33 +567,33 @@ const [
   // =====================================================
 
   const loadInstitutionCount =
-  useCallback(async () => {
-    setInstitutionCountLoading(true);
+    useCallback(async () => {
+      setInstitutionCountLoading(true);
 
-    try {
-      const contract =
-        await getContract();
+      try {
+        const contract =
+          await getContract();
 
-      if (!contract) {
-        return;
-      }
+        if (!contract) {
+          return;
+        }
 
-      const count =
-        Number(
-          await contract.institutionCount()
+        const count =
+          Number(
+            await contract.institutionCount()
+          );
+
+        setInstitutionCount(
+          count
         );
 
-      setInstitutionCount(
-        count
-      );
+      } catch {
+        /* silent on overview */
 
-    } catch {
-      /* silent on overview */
-
-    } finally {
-      setInstitutionCountLoading(false);
-    }
-  }, [getContract]);
+      } finally {
+        setInstitutionCountLoading(false);
+      }
+    }, [getContract]);
 
 
   // =====================================================
@@ -568,9 +602,7 @@ const [
 
   const loadActiveElections =
     useCallback(async () => {
-      setActiveElectionsLoading(
-        true
-      );
+      setActiveElectionsLoading(true);
 
       try {
         const contract =
@@ -578,221 +610,308 @@ const [
 
         if (!contract) {
           setActiveElections([]);
-
+          setUpcomingElections([]);
           return;
         }
+
+
+        // =====================================================
+        // 1. GET INSTITUTION COUNT
+        // =====================================================
 
         const institutionTotal =
           Number(
             await contract.institutionCount()
           );
 
-        const elections = [];
-const upcoming = [];
-
-        const now =
-          Math.floor(
-            Date.now() / 1000
-          );
+        if (institutionTotal === 0) {
+          setActiveElections([]);
+          setUpcomingElections([]);
+          return;
+        }
 
 
-        // -------------------------------------------------
-        // LOOP INSTITUTIONS
-        // -------------------------------------------------
+        // =====================================================
+        // 2. LOAD ALL INSTITUTIONS TOGETHER
+        // =====================================================
+
+        const institutionPromises = [];
 
         for (
           let institutionId = 1;
-          institutionId <=
-          institutionTotal;
+          institutionId <= institutionTotal;
           institutionId++
         ) {
-          const institution =
-            await contract.institutions(
-              institutionId
-            );
-
-          const institutionName =
-            institution.name;
-
-          const organizationCount =
-            Number(
-              institution.organizationCount
-            );
-
-
-          // -----------------------------------------------
-          // LOOP ORGANIZATIONS
-          // -----------------------------------------------
-
-          for (
-            let organizationId = 1;
-            organizationId <=
-            organizationCount;
-            organizationId++
-          ) {
-            const organization =
-              await contract.getOrganization(
+          institutionPromises.push(
+            contract
+              .institutions(institutionId)
+              .then((institution) => ({
                 institutionId,
-                organizationId
+                institution,
+              }))
+          );
+        }
+
+        const institutionResults =
+          await Promise.all(
+            institutionPromises
+          );
+
+
+        // =====================================================
+        // 3. LOAD ALL ORGANIZATIONS TOGETHER
+        // =====================================================
+
+        const organizationPromises = [];
+
+        institutionResults.forEach(
+          ({
+            institutionId,
+            institution,
+          }) => {
+            const organizationCount =
+              Number(
+                institution.organizationCount
               );
 
+            for (
+              let organizationId = 1;
+              organizationId <=
+              organizationCount;
+              organizationId++
+            ) {
+              organizationPromises.push(
+                contract
+                  .getOrganization(
+                    institutionId,
+                    organizationId
+                  )
+                  .then((organization) => ({
+                    institutionId,
+
+                    institutionName:
+                      institution.name,
+
+                    organizationId,
+
+                    organization,
+                  }))
+              );
+            }
+          }
+        );
+
+        const organizationResults =
+          await Promise.all(
+            organizationPromises
+          );
+
+
+        // =====================================================
+        // 4. LOAD ALL POSTS TOGETHER
+        // =====================================================
+
+        const postPromises = [];
+
+        organizationResults.forEach(
+          ({
+            institutionId,
+            institutionName,
+            organizationId,
+            organization,
+          }) => {
             const organizationName =
               organization[1];
 
             const organizationExists =
-              organization[2];
+              Boolean(
+                organization[2]
+              );
 
             const postCount =
               Number(
                 organization[3]
               );
 
-            if (
-              !organizationExists
-            ) {
-              continue;
+            if (!organizationExists) {
+              return;
             }
-
-
-            // ---------------------------------------------
-            // LOOP POSTS
-            // ---------------------------------------------
 
             for (
               let postId = 1;
               postId <= postCount;
               postId++
             ) {
-              const post =
-                await contract.getPost(
-                  institutionId,
-                  organizationId,
-                  postId
-                );
+              postPromises.push(
+                contract
+                  .getPost(
+                    institutionId,
+                    organizationId,
+                    postId
+                  )
+                  .then((post) => ({
+                    institutionId,
+                    institutionName,
 
-              const actualPostId =
-                Number(
-                  post.id
-                );
+                    organizationId,
+                    organizationName,
 
-              const title =
-                post.title;
-
-              const postActive =
-                Boolean(
-                  post.active
-                );
-
-              const seatLimit =
-                Number(
-                  post.seatCount
-                );
-
-              const candidateCount =
-                Number(
-                  post.candidateCount
-                );
-
-              const startDate =
-                Number(
-                  post.votingStart
-                );
-
-              const endDate =
-                Number(
-                  post.votingEnd
-                );
-
-              const isActive =
-  postActive &&
-  startDate > 0 &&
-  endDate > 0 &&
-  now >= startDate &&
-  now <= endDate;
-
-const isUpcoming =
-  postActive &&
-  startDate > 0 &&
-  endDate > 0 &&
-  now < startDate;
-
-
-/* ACTIVE ELECTION */
-
-if (isActive) {
-  elections.push({
-    institutionId,
-    institutionName,
-
-    organizationId,
-    organizationName,
-
-    postId: actualPostId,
-
-    title,
-
-    seatLimit,
-    candidateCount,
-
-    startDate,
-    endDate,
-  });
-}
-
-
-/* UPCOMING ELECTION */
-
-if (isUpcoming) {
-  upcoming.push({
-    institutionId,
-    institutionName,
-
-    organizationId,
-    organizationName,
-
-    postId: actualPostId,
-
-    title,
-
-    seatLimit,
-    candidateCount,
-
-    startDate,
-    endDate,
-  });
-}
+                    post,
+                  }))
+              );
             }
           }
-        }
+        );
+
+        const postResults =
+          await Promise.all(
+            postPromises
+          );
 
 
-        // -------------------------------------------------
-        // ENDING SOON FIRST
-        // -------------------------------------------------
+        // =====================================================
+        // 5. PROCESS DATA LOCALLY
+        // =====================================================
 
-        /* ACTIVE: ending soon first */
+        const elections = [];
+        const upcoming = [];
 
-elections.sort(
-  (a, b) =>
-    a.endDate - b.endDate
-);
+        const now =
+          Math.floor(
+            Date.now() / 1000
+          );
+
+        postResults.forEach(
+          ({
+            institutionId,
+            institutionName,
+            organizationId,
+            organizationName,
+            post,
+          }) => {
+            const actualPostId =
+              Number(post.id);
+
+            const title =
+              post.title;
+
+            const postActive =
+              Boolean(post.active);
+
+            const seatLimit =
+              Number(
+                post.seatCount
+              );
+
+            const candidateCount =
+              Number(
+                post.candidateCount
+              );
+
+            const startDate =
+              Number(
+                post.votingStart
+              );
+
+            const endDate =
+              Number(
+                post.votingEnd
+              );
+
+            const isActive =
+              postActive &&
+              startDate > 0 &&
+              endDate > 0 &&
+              now >= startDate &&
+              now <= endDate;
+
+            const isUpcoming =
+              postActive &&
+              startDate > 0 &&
+              endDate > 0 &&
+              now < startDate;
 
 
-/* UPCOMING: starting soon first */
+            if (isActive) {
+              elections.push({
+                institutionId,
+                institutionName,
 
-upcoming.sort(
-  (a, b) =>
-    a.startDate - b.startDate
-);
+                organizationId,
+                organizationName,
+
+                postId:
+                  actualPostId,
+
+                title,
+
+                seatLimit,
+                candidateCount,
+
+                startDate,
+                endDate,
+              });
+            }
 
 
-setActiveElections(
-  elections
-);
+            if (isUpcoming) {
+              upcoming.push({
+                institutionId,
+                institutionName,
 
-setUpcomingElections(
-  upcoming
-);
+                organizationId,
+                organizationName,
+
+                postId:
+                  actualPostId,
+
+                title,
+
+                seatLimit,
+                candidateCount,
+
+                startDate,
+                endDate,
+              });
+            }
+          }
+        );
+
+
+        // =====================================================
+        // 6. SORT
+        // =====================================================
+
+        elections.sort(
+          (a, b) =>
+            a.endDate -
+            b.endDate
+        );
+
+        upcoming.sort(
+          (a, b) =>
+            a.startDate -
+            b.startDate
+        );
+
+
+        // =====================================================
+        // 7. SAVE
+        // =====================================================
+
+        setActiveElections(
+          elections
+        );
+
+        setUpcomingElections(
+          upcoming
+        );
+
+        // Dashboard blockchain data has now
+        // been successfully loaded once.
+        setDashboardDataLoaded(
+          true
+        );
 
       } catch (err) {
         console.error(
@@ -940,11 +1059,8 @@ setUpcomingElections(
     // TRANSACTION STATE
 
     transactions,
-
     transactionError,
-
     transactionsLoading,
-
     clearTransactionError,
 
 
@@ -954,10 +1070,29 @@ setUpcomingElections(
     institutionCountLoading,
 
 
+    // INSTITUTION CACHE
+
+    cachedInstitutions,
+    setCachedInstitutions,
+    institutionsLoaded,
+    setInstitutionsLoaded,
+
+
+    // ORGANIZATION CACHE
+
+    cachedOrganizations,
+    setCachedOrganizations,
+
+
+    // DASHBOARD ELECTION STATE
+
     activeElections,
     upcomingElections,
     activeElectionsLoading,
+    dashboardDataLoaded,
 
+
+    // FUNCTIONS
 
     getContract,
 
@@ -1045,7 +1180,6 @@ setUpcomingElections(
     </VotingContext.Provider>
   );
 }
-
 
 
 const backendErrorOverlayStyle = {

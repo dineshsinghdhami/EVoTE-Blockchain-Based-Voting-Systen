@@ -37,100 +37,141 @@ function PostList({ mode }) {
   // =====================================================
 
   async function loadPosts() {
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const contract = await getContract();
+  try {
+    const contract =
+      await getContract();
 
-      if (!contract) {
-        setLoading(false);
-        return;
-      }
+    if (!contract) {
+      setPosts([]);
+      return;
+    }
 
-      const institutionData = await contract.institutions(
-        Number(instId)
-      );
+    // =====================================================
+    // LOAD ORGANIZATION FIRST
+    // =====================================================
 
-      setInstitutionName(institutionData.name);
-
-      const org = await contract.getOrganization(
+    const organization =
+      await contract.getOrganization(
         Number(instId),
         Number(orgId)
       );
 
-      // NEW Sepolia Organization struct:
-      // 0 = id
-      // 1 = name
-      // 2 = exists
-      // 3 = postCount
-      setOrganizationName(org[1]);
+    const organizationName =
+      organization[1];
 
-      const count = Number(org[3]);
-      const temp = [];
+    const organizationExists =
+      Boolean(organization[2]);
 
-      for (let i = 1; i <= count; i++) {
-        const p = await contract.getPost(
-          Number(instId),
-          Number(orgId),
-          i
-        );
+    const postCount =
+      Number(organization[3]);
 
-        // NEW Sepolia Post fields.
-        // We use named properties because the new contract has
-        // more fields than the old Ganache version.
-        temp.push({
-          id: Number(p.id),
-          title: p.title,
-          active: p.active,
+    setOrganizationName(
+      organizationName
+    );
 
-          seatLimit: Number(p.seatCount),
-          maxCandidateCount: Number(p.maxCandidateCount),
-          candidateCount: Number(p.candidateCount),
-
-          minCandidateAge: Number(p.minCandidateAge),
-          maxCandidateAge: Number(p.maxCandidateAge),
-
-          candidateRegistrationStart: Number(
-            p.candidateRegistrationStart
-          ),
-
-          candidateRegistrationEnd: Number(
-            p.candidateRegistrationEnd
-          ),
-
-          startDate: Number(p.votingStart),
-          endDate: Number(p.votingEnd),
-
-          // Keep compatibility if the deployed contract still
-          // exposes candidate request count.
-          requestCount:
-            p.requestCount !== undefined
-              ? Number(p.requestCount)
-              : 0,
-        });
-      }
-
-      setPosts(temp);
-
-      // Check request status where the deployed contract
-      // exposes candidate-request records.
-      const statuses = {};
-
-      for (const post of temp) {
-        statuses[post.id] =
-          await checkCandidateRequestStatus(post);
-      }
-
-      setStatusMap(statuses);
-
+    if (
+      !organizationExists ||
+      postCount === 0
+    ) {
+      setPosts([]);
       setMessage("");
-    } catch (err) {
-      console.error("Failed to load posts:", err);
-      setMessage("Failed to load posts");
+      return;
     }
 
+    // =====================================================
+    // LOAD ALL POSTS TOGETHER
+    // =====================================================
+
+    const postPromises = [];
+
+    for (
+      let postId = 1;
+      postId <= postCount;
+      postId++
+    ) {
+      postPromises.push(
+        contract
+          .getPost(
+            Number(instId),
+            Number(orgId),
+            postId
+          )
+          .then((post) => ({
+  id: Number(post.id),
+  title: post.title,
+  active: Boolean(post.active),
+
+  seatLimit: Number(
+    post.seatCount
+  ),
+
+  maxCandidateCount: Number(
+    post.maxCandidateCount
+  ),
+
+  candidateCount: Number(
+    post.candidateCount
+  ),
+
+  minCandidateAge: Number(
+    post.minCandidateAge
+  ),
+
+  maxCandidateAge: Number(
+    post.maxCandidateAge
+  ),
+
+  candidateRegistrationStart: Number(
+    post.candidateRegistrationStart
+  ),
+
+  candidateRegistrationEnd: Number(
+    post.candidateRegistrationEnd
+  ),
+
+  startDate: Number(
+    post.votingStart
+  ),
+
+  endDate: Number(
+    post.votingEnd
+  ),
+
+  requestCount:
+    post.requestCount !== undefined
+      ? Number(post.requestCount)
+      : 0,
+}))
+      );
+    }
+
+    const results =
+      await Promise.all(
+        postPromises
+      );
+
+    setPosts(results);
+
+    setMessage("");
+
+  } catch (err) {
+    console.error(
+      "Failed to load posts:",
+      err
+    );
+
+    setPosts([]);
+
+    setMessage(
+      "Failed to load posts"
+    );
+
+  } finally {
     setLoading(false);
   }
+}
 
   // =====================================================
   // CHECK CANDIDATE REQUEST STATUS

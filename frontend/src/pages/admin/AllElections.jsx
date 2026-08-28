@@ -890,7 +890,7 @@ function AllElections() {
 
                         <FiExternalLink />
 
-                        Etherscan
+                        View on Sepolia Etherscan
 
                       </a>
 
