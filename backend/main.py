@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
+from concurrent.futures import ThreadPoolExecutor
 import secrets
 import asyncio
 import re
+import requests
 from eth_account.messages import encode_defunct
 from web3 import Web3
 from sqlalchemy.orm import Session
@@ -2851,24 +2853,327 @@ def get_candidate_requests(
 ):
     from datetime import date
 
-    requests = db.query(CandidateRequest).all()
+    # =========================================================
+    # 1. LOAD CANDIDATE REQUESTS
+    # =========================================================
+
+    candidate_requests = (
+        db.query(CandidateRequest)
+        .all()
+    )
+
+    if not candidate_requests:
+        return []
+
+
+    # =========================================================
+    # 2. LOAD ALL REQUIRED USERS IN ONE DATABASE QUERY
+    # =========================================================
+
+    user_ids = list({
+        request.user_id
+        for request in candidate_requests
+    })
+
+    users = (
+        db.query(User)
+        .filter(
+            User.id.in_(user_ids)
+        )
+        .all()
+    )
+
+    users_by_id = {
+        user.id: user
+        for user in users
+    }
+
+
+    # =========================================================
+    # 3. COLLECT UNIQUE BLOCKCHAIN LOOKUPS
+    # =========================================================
+
+    institution_ids = set()
+
+    organization_keys = set()
+
+    post_keys = set()
+
+
+    for request in candidate_requests:
+
+        institution_id = int(
+            request.institution_id
+        )
+
+        organization_id = int(
+            request.organization_id
+        )
+
+        election_id = int(
+            request.election_id
+        )
+
+        institution_ids.add(
+            institution_id
+        )
+
+        organization_keys.add(
+            (
+                institution_id,
+                organization_id
+            )
+        )
+
+        post_keys.add(
+            (
+                institution_id,
+                organization_id,
+                election_id
+            )
+        )
+
+
+    # =========================================================
+    # 4. BLOCKCHAIN LOADER FUNCTIONS
+    # =========================================================
+
+    def load_institution(
+        institution_id
+    ):
+        try:
+
+            name = get_institution_name(
+                institution_id
+            )
+
+            return (
+                institution_id,
+                name
+            )
+
+        except Exception as error:
+
+            print(
+                "Failed to load institution name:",
+                error
+            )
+
+            return (
+                institution_id,
+                "Not available"
+            )
+
+
+    def load_organization(
+        key
+    ):
+        institution_id, organization_id = key
+
+        try:
+
+            name = get_organization_name(
+                institution_id,
+                organization_id
+            )
+
+            return (
+                key,
+                name
+            )
+
+        except Exception as error:
+
+            print(
+                "Failed to load organization name:",
+                error
+            )
+
+            return (
+                key,
+                "Not available"
+            )
+
+
+    def load_post(
+        key
+    ):
+        (
+            institution_id,
+            organization_id,
+            election_id
+        ) = key
+
+        try:
+
+            post_data = get_post_blockchain(
+                institution_id,
+                organization_id,
+                election_id
+            )
+
+            return (
+                key,
+                post_data[1]
+            )
+
+        except Exception as error:
+
+            print(
+                "Failed to load post name:",
+                error
+            )
+
+            return (
+                key,
+                "Not available"
+            )
+
+
+    # =========================================================
+    # 5. RUN ALL BLOCKCHAIN LOOKUPS CONCURRENTLY
+    # =========================================================
+
+    jobs = []
+
+    for institution_id in institution_ids:
+        jobs.append(
+            (
+                "institution",
+                institution_id
+            )
+        )
+
+    for organization_key in organization_keys:
+        jobs.append(
+            (
+                "organization",
+                organization_key
+            )
+        )
+
+    for post_key in post_keys:
+        jobs.append(
+            (
+                "post",
+                post_key
+            )
+        )
+
+
+    def run_job(job):
+
+        job_type, value = job
+
+        if job_type == "institution":
+            key, result = load_institution(
+                value
+            )
+
+            return (
+                "institution",
+                key,
+                result
+            )
+
+        if job_type == "organization":
+            key, result = load_organization(
+                value
+            )
+
+            return (
+                "organization",
+                key,
+                result
+            )
+
+        key, result = load_post(
+            value
+        )
+
+        return (
+            "post",
+            key,
+            result
+        )
+
+
+    institution_cache = {}
+
+    organization_cache = {}
+
+    post_cache = {}
+
+
+    if jobs:
+
+        max_workers = min(
+            8,
+            len(jobs)
+        )
+
+        with ThreadPoolExecutor(
+            max_workers=max_workers
+        ) as executor:
+
+            job_results = list(
+                executor.map(
+                    run_job,
+                    jobs
+                )
+            )
+
+
+        for (
+            job_type,
+            key,
+            value
+        ) in job_results:
+
+            if job_type == "institution":
+
+                institution_cache[
+                    key
+                ] = value
+
+            elif job_type == "organization":
+
+                organization_cache[
+                    key
+                ] = value
+
+            else:
+
+                post_cache[
+                    key
+                ] = value
+
+
+    # =========================================================
+    # 6. BUILD FINAL RESPONSE
+    # =========================================================
 
     result = []
 
-    for r in requests:
-        user = (
-            db.query(User)
-            .filter(User.id == r.user_id)
-            .first()
+
+    for request in candidate_requests:
+
+        user = users_by_id.get(
+            request.user_id
         )
 
+
         # =====================================================
-        # CALCULATE AGE
+        # AGE
         # =====================================================
 
         age = None
 
-        if user and user.date_of_birth:
+        if (
+            user
+            and user.date_of_birth
+        ):
+
             today = date.today()
 
             age = (
@@ -2879,73 +3184,87 @@ def get_candidate_requests(
                     <
                     (
                         user.date_of_birth.month,
-                        user.date_of_birth.day,
+                        user.date_of_birth.day
                     )
                 )
             )
 
-        # =====================================================
-        # GET BLOCKCHAIN NAMES
-        # =====================================================
 
-        institution_name = "Not available"
-        organization_name = "Not available"
-        post_name = "Not available"
+        institution_id = int(
+            request.institution_id
+        )
 
-        try:
-            institution_name = get_institution_name(
-                int(r.institution_id)
+        organization_id = int(
+            request.organization_id
+        )
+
+        election_id = int(
+            request.election_id
+        )
+
+
+        institution_name = (
+            institution_cache.get(
+                institution_id,
+                "Not available"
             )
-        except Exception as error:
-            print(
-                "Failed to get institution name:",
-                error
-            )
+        )
 
-        try:
-            organization_name = get_organization_name(
-                int(r.institution_id),
-                int(r.organization_id)
-            )
-        except Exception as error:
-            print(
-                "Failed to get organization name:",
-                error
-            )
 
-        try:
-            post_data = get_post_blockchain(
-                int(r.institution_id),
-                int(r.organization_id),
-                int(r.election_id)
+        organization_name = (
+            organization_cache.get(
+                (
+                    institution_id,
+                    organization_id
+                ),
+                "Not available"
             )
+        )
 
-            post_name = post_data[1]
 
-        except Exception as error:
-            print(
-                "Failed to get post name:",
-                error
+        post_name = (
+            post_cache.get(
+                (
+                    institution_id,
+                    organization_id,
+                    election_id
+                ),
+                "Not available"
             )
+        )
 
-        # =====================================================
-        # RESPONSE
-        # =====================================================
 
         result.append({
-            "id": r.id,
-            "user_id": r.user_id,
 
-            "institution_id": r.institution_id,
-            "organization_id": r.organization_id,
-            "election_id": r.election_id,
-            "post_id": r.election_id,
+            "id":
+                request.id,
 
-            "institution_name": institution_name,
-            "organization_name": organization_name,
-            "post_name": post_name,
+            "user_id":
+                request.user_id,
 
-            "status": r.status,
+            "institution_id":
+                request.institution_id,
+
+            "organization_id":
+                request.organization_id,
+
+            "election_id":
+                request.election_id,
+
+            "post_id":
+                request.election_id,
+
+            "institution_name":
+                institution_name,
+
+            "organization_name":
+                organization_name,
+
+            "post_name":
+                post_name,
+
+            "status":
+                request.status,
 
             "candidate_name":
                 user.full_name
@@ -2957,18 +3276,27 @@ def get_candidate_requests(
                 if user
                 else "",
 
-            "age": age,
+            "age":
+                age,
 
             "date_of_birth":
-                user.date_of_birth.isoformat()
-                if user and user.date_of_birth
-                else None,
+                (
+                    user.date_of_birth.isoformat()
+                    if (
+                        user
+                        and user.date_of_birth
+                    )
+                    else None
+                ),
 
             "wallet_address":
-                user.wallet_address
-                if user
-                else "",
+                (
+                    user.wallet_address
+                    if user
+                    else ""
+                ),
         })
+
 
     return result
 
@@ -3160,7 +3488,7 @@ def normalize_transaction_action(action: str):
         return action
 
 
-def serialize_transaction(tx):
+def serialize_transaction(tx, latest_block=None):
 
     # ========================================================
     # DEFAULT BLOCKCHAIN VERIFICATION VALUES
@@ -3181,7 +3509,7 @@ def serialize_transaction(tx):
 
 
     # ========================================================
-    # VERIFY TRANSACTION DIRECTLY FROM ETHEREUM SEPOLIA
+    # VERIFY TRANSACTION FROM ETHEREUM SEPOLIA
     # ========================================================
 
     if tx.tx_hash:
@@ -3192,24 +3520,24 @@ def serialize_transaction(tx):
                 tx.tx_hash
             ).strip()
 
-            # Web3 expects a normal 0x transaction hash.
             if not tx_hash.startswith("0x"):
                 tx_hash = f"0x{tx_hash}"
 
 
             # ------------------------------------------------
-            # GET REAL TRANSACTION FROM SEPOLIA
-            # ------------------------------------------------
-
-            blockchain_tx = (
-                w3.eth.get_transaction(
-                    tx_hash
-                )
-            )
-
-
-            # ------------------------------------------------
-            # GET REAL TRANSACTION RECEIPT
+            # GET ONLY THE RECEIPT
+            #
+            # IMPORTANT:
+            # Previously we were doing:
+            #
+            # get_transaction()
+            # get_transaction_receipt()
+            # block_number
+            #
+            # for EVERY transaction.
+            #
+            # The receipt already contains most information
+            # we need, so get_transaction() is unnecessary.
             # ------------------------------------------------
 
             receipt = (
@@ -3220,7 +3548,7 @@ def serialize_transaction(tx):
 
 
             # ------------------------------------------------
-            # BLOCK INFORMATION
+            # BLOCK NUMBER
             # ------------------------------------------------
 
             block_number = (
@@ -3228,34 +3556,35 @@ def serialize_transaction(tx):
             )
 
 
-            latest_block = (
-                w3.eth.block_number
-            )
+            # ------------------------------------------------
+            # CONFIRMATIONS
+            # ------------------------------------------------
 
+            if latest_block is not None:
 
-            confirmations = max(
-                0,
-                latest_block -
-                block_number +
-                1
-            )
+                confirmations = max(
+                    0,
+                    latest_block -
+                    block_number +
+                    1
+                )
 
 
             # ------------------------------------------------
-            # REAL BLOCKCHAIN ADDRESSES
+            # BLOCKCHAIN ADDRESSES
             # ------------------------------------------------
 
             blockchain_from = (
-                blockchain_tx["from"]
+                receipt.get("from")
             )
 
             blockchain_to = (
-                blockchain_tx["to"]
+                receipt.get("to")
             )
 
 
             # ------------------------------------------------
-            # VERIFY TRANSACTION SUCCESS
+            # VERIFY SUCCESS
             # ------------------------------------------------
 
             if receipt.status == 1:
@@ -3276,7 +3605,7 @@ def serialize_transaction(tx):
 
 
             # ------------------------------------------------
-            # ETHERSCAN
+            # ETHERSCAN URL
             # ------------------------------------------------
 
             etherscan_url = (
@@ -3304,10 +3633,6 @@ def serialize_transaction(tx):
     # ========================================================
 
     return {
-
-        # ----------------------------------------------------
-        # DATABASE INFORMATION
-        # ----------------------------------------------------
 
         "id": tx.id,
 
@@ -3341,7 +3666,7 @@ def serialize_transaction(tx):
 
 
         # ----------------------------------------------------
-        # REAL BLOCKCHAIN VERIFICATION
+        # BLOCKCHAIN INFORMATION
         # ----------------------------------------------------
 
         "blockchain_verified":
@@ -3379,6 +3704,17 @@ def get_all_transactions(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_admin)
 ):
+
+    # ========================================================
+    # 1. GET TRANSACTION HISTORY INDEX FROM DATABASE
+    #
+    # IMPORTANT:
+    # PostgreSQL is only being used here to know which
+    # transaction hashes belong to EVoTE.
+    #
+    # Blockchain verification below still comes from Sepolia.
+    # ========================================================
+
     transactions = (
         db.query(TransactionHistory)
         .order_by(
@@ -3387,7 +3723,530 @@ def get_all_transactions(
         .all()
     )
 
-    return [serialize_transaction(tx) for tx in transactions]
+    if not transactions:
+        return []
+
+
+    # ========================================================
+    # 2. FIND RPC ENDPOINT
+    # ========================================================
+
+    rpc_url = getattr(
+        w3.provider,
+        "endpoint_uri",
+        None
+    )
+
+
+    # ========================================================
+    # 3. FALLBACK
+    #
+    # If this Web3 provider is not an HTTP provider,
+    # use our previous parallel method.
+    # ========================================================
+
+    if not rpc_url:
+
+        print(
+            "RPC endpoint not available. "
+            "Using parallel transaction verification."
+        )
+
+        latest_block = None
+
+        try:
+            latest_block = w3.eth.block_number
+
+        except Exception as error:
+            print(
+                "Failed to get latest block:",
+                error
+            )
+
+
+        def process_transaction(tx):
+            return serialize_transaction(
+                tx,
+                latest_block
+            )
+
+
+        max_workers = min(
+            8,
+            len(transactions)
+        )
+
+
+        with ThreadPoolExecutor(
+            max_workers=max_workers
+        ) as executor:
+
+            return list(
+                executor.map(
+                    process_transaction,
+                    transactions
+                )
+            )
+
+
+    # ========================================================
+    # 4. CREATE ONE JSON-RPC BATCH
+    #
+    # Instead of:
+    #
+    # receipt 1 -> HTTP request
+    # receipt 2 -> HTTP request
+    # receipt 3 -> HTTP request
+    #
+    # We send all receipt requests together.
+    # ========================================================
+
+    rpc_requests = []
+
+
+    # Request ID 1 = latest Ethereum block
+    rpc_requests.append({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "eth_blockNumber",
+        "params": []
+    })
+
+
+    transaction_by_rpc_id = {}
+
+    rpc_id = 2
+
+
+    for tx in transactions:
+
+        if not tx.tx_hash:
+            continue
+
+
+        tx_hash = str(
+            tx.tx_hash
+        ).strip()
+
+
+        if not tx_hash.startswith("0x"):
+            tx_hash = (
+                f"0x{tx_hash}"
+            )
+
+
+        rpc_requests.append({
+            "jsonrpc": "2.0",
+            "id": rpc_id,
+            "method":
+                "eth_getTransactionReceipt",
+            "params": [
+                tx_hash
+            ]
+        })
+
+
+        transaction_by_rpc_id[
+            rpc_id
+        ] = tx
+
+
+        rpc_id += 1
+
+
+    # ========================================================
+    # 5. SEND THE WHOLE BATCH TO SEPOLIA
+    # ========================================================
+
+    try:
+
+        response = requests.post(
+            rpc_url,
+            json=rpc_requests,
+            headers={
+                "Content-Type":
+                    "application/json"
+            },
+            timeout=15
+        )
+
+
+        response.raise_for_status()
+
+
+        rpc_results = (
+            response.json()
+        )
+
+
+        if not isinstance(
+            rpc_results,
+            list
+        ):
+            raise Exception(
+                "RPC provider did not return "
+                "a batch response"
+            )
+
+
+    except Exception as error:
+
+        print(
+            "Batch transaction verification failed:",
+            error
+        )
+
+
+        # ====================================================
+        # SAFE FALLBACK TO PARALLEL RPC
+        # ====================================================
+
+        latest_block = None
+
+        try:
+
+            latest_block = (
+                w3.eth.block_number
+            )
+
+        except Exception as block_error:
+
+            print(
+                "Failed to get latest block:",
+                block_error
+            )
+
+
+        def process_transaction(tx):
+
+            return serialize_transaction(
+                tx,
+                latest_block
+            )
+
+
+        max_workers = min(
+            8,
+            len(transactions)
+        )
+
+
+        with ThreadPoolExecutor(
+            max_workers=max_workers
+        ) as executor:
+
+            return list(
+                executor.map(
+                    process_transaction,
+                    transactions
+                )
+            )
+
+
+    # ========================================================
+    # 6. ORGANIZE BATCH RESPONSES BY REQUEST ID
+    # ========================================================
+
+    rpc_by_id = {
+        item.get("id"):
+            item
+        for item in rpc_results
+        if isinstance(item, dict)
+    }
+
+
+    # ========================================================
+    # 7. GET LATEST BLOCK
+    # ========================================================
+
+    latest_block = None
+
+
+    block_response = (
+        rpc_by_id.get(1)
+    )
+
+
+    if block_response:
+
+        block_hex = (
+            block_response.get(
+                "result"
+            )
+        )
+
+
+        if block_hex:
+
+            try:
+
+                latest_block = int(
+                    block_hex,
+                    16
+                )
+
+            except Exception:
+
+                latest_block = None
+
+
+    # ========================================================
+    # 8. MAP RECEIPTS TO TRANSACTIONS
+    # ========================================================
+
+    receipt_by_transaction_id = {}
+
+
+    for request_id, tx in (
+        transaction_by_rpc_id.items()
+    ):
+
+        rpc_item = (
+            rpc_by_id.get(
+                request_id
+            )
+        )
+
+
+        receipt = None
+
+
+        if rpc_item:
+
+            receipt = (
+                rpc_item.get(
+                    "result"
+                )
+            )
+
+
+        receipt_by_transaction_id[
+            tx.id
+        ] = receipt
+
+
+    # ========================================================
+    # 9. BUILD FINAL RESPONSE
+    # ========================================================
+
+    results = []
+
+
+    for tx in transactions:
+
+        tx_hash = (
+            str(tx.tx_hash).strip()
+            if tx.tx_hash
+            else ""
+        )
+
+
+        if (
+            tx_hash
+            and not tx_hash.startswith("0x")
+        ):
+
+            tx_hash = (
+                f"0x{tx_hash}"
+            )
+
+
+        receipt = (
+            receipt_by_transaction_id.get(
+                tx.id
+            )
+        )
+
+
+        blockchain_verified = False
+
+        blockchain_status = (
+            "not_found"
+        )
+
+        block_number = None
+
+        confirmations = 0
+
+        blockchain_from = None
+
+        blockchain_to = None
+
+
+        # ====================================================
+        # RECEIPT EXISTS ON SEPOLIA
+        # ====================================================
+
+        if receipt:
+
+            blockchain_from = (
+                receipt.get(
+                    "from"
+                )
+            )
+
+            blockchain_to = (
+                receipt.get(
+                    "to"
+                )
+            )
+
+
+            block_hex = (
+                receipt.get(
+                    "blockNumber"
+                )
+            )
+
+
+            if block_hex:
+
+                try:
+
+                    block_number = int(
+                        block_hex,
+                        16
+                    )
+
+                except Exception:
+
+                    block_number = None
+
+
+            status_hex = (
+                receipt.get(
+                    "status"
+                )
+            )
+
+
+            try:
+
+                transaction_success = (
+                    int(
+                        status_hex,
+                        16
+                    ) == 1
+                )
+
+            except Exception:
+
+                transaction_success = False
+
+
+            if transaction_success:
+
+                blockchain_verified = True
+
+                blockchain_status = (
+                    "verified"
+                )
+
+            else:
+
+                blockchain_status = (
+                    "failed"
+                )
+
+
+            if (
+                latest_block is not None
+                and
+                block_number is not None
+            ):
+
+                confirmations = max(
+                    0,
+                    latest_block
+                    - block_number
+                    + 1
+                )
+
+
+        # ====================================================
+        # ETHERSCAN
+        # ====================================================
+
+        etherscan_url = (
+            (
+                "https://sepolia.etherscan.io/tx/"
+                f"{tx_hash}"
+            )
+            if tx_hash
+            else None
+        )
+
+
+        # ====================================================
+        # RESPONSE
+        # ====================================================
+
+        results.append({
+
+            "id":
+                tx.id,
+
+            "user_id":
+                tx.user_id,
+
+            "full_name":
+                tx.full_name,
+
+            "email":
+                tx.email,
+
+            "role":
+                tx.role,
+
+            "action":
+                normalize_transaction_action(
+                    tx.action
+                ),
+
+            "tx_hash":
+                tx.tx_hash,
+
+            "from_address":
+                tx.from_address,
+
+            "status":
+                tx.status,
+
+            "created_at":
+                tx.created_at,
+
+
+            # ================================================
+            # VERIFIED DIRECTLY FROM SEPOLIA
+            # ================================================
+
+            "blockchain_verified":
+                blockchain_verified,
+
+            "blockchain_status":
+                blockchain_status,
+
+            "network":
+                "Ethereum Sepolia",
+
+            "block_number":
+                block_number,
+
+            "confirmations":
+                confirmations,
+
+            "blockchain_from":
+                blockchain_from,
+
+            "blockchain_to":
+                blockchain_to,
+
+            "etherscan_url":
+                etherscan_url,
+        })
+
+
+    return results
 
 
 @app.get("/transactions/user/{user_id}")

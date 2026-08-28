@@ -501,188 +501,277 @@ const winner =
   }, [handleApiError]);
 
   const loadInstitutions = useCallback(async () => {
-    setInstitutionsLoading(true);
+  setInstitutionsLoading(true);
 
-    try {
-      const contract = await getContract();
+  try {
+    const contract = await getContract();
 
-      if (!contract) {
-        return;
-      }
-
-      const count = Number(
-        await contract.institutionCount()
-      );
-
-      const temp = [];
-
-      for (let i = 1; i <= count; i++) {
-        const institution =
-          await contract.institutions(i);
-
-        temp.push({
-          id: i,
-          name: institution.name,
-          organizationCount: Number(
-            institution.organizationCount
-          ),
-        });
-      }
-
-      setInstitutions(temp);
-    } catch (err) {
-      console.error(
-        "Failed to load institutions:",
-        err
-      );
-
-      setMessage(
-        "Failed to load institutions"
-      );
-    } finally {
-      setInstitutionsLoading(false);
+    if (!contract) {
+      return;
     }
-  }, [getContract]);
+
+    const count = Number(
+      await contract.institutionCount()
+    );
+
+    // If there are no institutions, stop immediately.
+    if (count === 0) {
+      setInstitutions([]);
+      return;
+    }
+
+    // Create all blockchain read requests first.
+    // This allows them to run together instead of
+    // waiting for institution 1, then 2, then 3...
+    const institutionPromises = [];
+
+    for (let i = 1; i <= count; i++) {
+      institutionPromises.push(
+        contract.institutions(i)
+      );
+    }
+
+    // Wait for all institution requests together.
+    const institutionResults =
+      await Promise.all(institutionPromises);
+
+    const temp = institutionResults.map(
+      (institution, index) => ({
+        id: index + 1,
+        name: institution.name,
+        organizationCount: Number(
+          institution.organizationCount
+        ),
+      })
+    );
+
+    setInstitutions(temp);
+  } catch (err) {
+    console.error(
+      "Failed to load institutions:",
+      err
+    );
+
+    setMessage(
+      "Failed to load institutions"
+    );
+  } finally {
+    setInstitutionsLoading(false);
+  }
+}, [getContract]);
 
   const loadDashboardStats = useCallback(async () => {
-    setDashboardStatsLoading(true);
+  setDashboardStatsLoading(true);
 
-    try {
-      const contract = await getContract();
+  try {
+    const contract = await getContract();
 
-      if (!contract) {
-        return;
-      }
+    if (!contract) {
+      return;
+    }
 
-      const institutionCount = Number(
-        await contract.institutionCount()
+    const institutionCount = Number(
+      await contract.institutionCount()
+    );
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // ------------------------------------------------
+    // STEP 1:
+    // Load all institutions at the same time.
+    // ------------------------------------------------
+
+    const institutionPromises = [];
+
+    for (let i = 1; i <= institutionCount; i++) {
+      institutionPromises.push(
+        contract.institutions(i)
       );
+    }
 
-      const now = Math.floor(
-        Date.now() / 1000
-      );
+    const institutionResults =
+      await Promise.all(institutionPromises);
 
-      let activePosts = 0;
-      let activeCandidates = 0;
+    // ------------------------------------------------
+    // STEP 2:
+    // Load all organizations at the same time.
+    // ------------------------------------------------
 
-      const activePostListTemp = [];
-      const allPostListTemp = [];
+    const organizationPromises = [];
 
-      for (
-        let i = 1;
-        i <= institutionCount;
-        i++
-      ) {
-        const institution =
-          await contract.institutions(i);
+    institutionResults.forEach(
+      (institution, institutionIndex) => {
+        const institutionId =
+          institutionIndex + 1;
 
         const organizationCount = Number(
           institution.organizationCount
         );
 
         for (
-          let j = 1;
-          j <= organizationCount;
-          j++
+          let organizationId = 1;
+          organizationId <= organizationCount;
+          organizationId++
         ) {
-          const org =
-            await contract.getOrganization(
-              i,
-              j
-            );
-
-          const postCount = Number(
-            org[3]
+          organizationPromises.push(
+            contract
+              .getOrganization(
+                institutionId,
+                organizationId
+              )
+              .then((organization) => ({
+                institutionId,
+                organizationId,
+                institution,
+                organization,
+              }))
           );
-
-          for (
-            let k = 1;
-            k <= postCount;
-            k++
-          ) {
-            const post =
-              await contract.getPost(
-                i,
-                j,
-                k
-              );
-
-            const candidateCount = Number(
-              post.candidateCount
-            );
-
-            const startDate = Number(
-              post.votingStart
-            );
-
-            const endDate = Number(
-              post.votingEnd
-            );
-
-            const postItem = {
-              id: Number(post.id),
-              title: post.title,
-
-              institutionId: i,
-              institutionName:
-                institution.name,
-
-              organizationId: j,
-              organizationName:
-                org[1],
-
-              candidateCount,
-              startDate,
-              endDate,
-            };
-
-            allPostListTemp.push(
-              postItem
-            );
-
-            if (
-              startDate > 0 &&
-              endDate > 0 &&
-              now >= startDate &&
-              now <= endDate
-            ) {
-              activePosts++;
-              activeCandidates +=
-                candidateCount;
-
-              activePostListTemp.push(
-                postItem
-              );
-            }
-          }
         }
       }
+    );
 
-      setActivePostsList(
-        activePostListTemp
+    const organizationResults =
+      await Promise.all(organizationPromises);
+
+    // ------------------------------------------------
+    // STEP 3:
+    // Load all posts at the same time.
+    // ------------------------------------------------
+
+    const postPromises = [];
+
+    organizationResults.forEach((item) => {
+      const {
+        institutionId,
+        organizationId,
+        institution,
+        organization,
+      } = item;
+
+      const postCount = Number(
+        organization[3]
       );
 
-      setAllPostsList(
-        allPostListTemp
+      for (
+        let postId = 1;
+        postId <= postCount;
+        postId++
+      ) {
+        postPromises.push(
+          contract
+            .getPost(
+              institutionId,
+              organizationId,
+              postId
+            )
+            .then((post) => ({
+              institutionId,
+              organizationId,
+              institution,
+              organization,
+              post,
+            }))
+        );
+      }
+    });
+
+    const postResults =
+      await Promise.all(postPromises);
+
+    // ------------------------------------------------
+    // STEP 4:
+    // Process already-loaded data locally.
+    // No more blockchain calls here.
+    // ------------------------------------------------
+
+    let activePosts = 0;
+    let activeCandidates = 0;
+
+    const activePostListTemp = [];
+    const allPostListTemp = [];
+
+    postResults.forEach((item) => {
+      const {
+        institutionId,
+        organizationId,
+        institution,
+        organization,
+        post,
+      } = item;
+
+      const candidateCount = Number(
+        post.candidateCount
       );
 
-      setDashboardStats({
-        activePosts,
-        activeCandidates,
-      });
-    } catch (err) {
-      console.error(
-        "Failed to load dashboard stats:",
-        err
+      const startDate = Number(
+        post.votingStart
       );
 
-      setMessage(
-        "Failed to load dashboard stats"
+      const endDate = Number(
+        post.votingEnd
       );
-    } finally {
-      setDashboardStatsLoading(false);
-    }
-  }, [getContract]);
+
+      const postItem = {
+        id: Number(post.id),
+        title: post.title,
+
+        institutionId,
+        institutionName:
+          institution.name,
+
+        organizationId,
+        organizationName:
+          organization[1],
+
+        candidateCount,
+        startDate,
+        endDate,
+      };
+
+      allPostListTemp.push(postItem);
+
+      if (
+        startDate > 0 &&
+        endDate > 0 &&
+        now >= startDate &&
+        now <= endDate
+      ) {
+        activePosts++;
+
+        activeCandidates +=
+          candidateCount;
+
+        activePostListTemp.push(
+          postItem
+        );
+      }
+    });
+
+    setActivePostsList(
+      activePostListTemp
+    );
+
+    setAllPostsList(
+      allPostListTemp
+    );
+
+    setDashboardStats({
+      activePosts,
+      activeCandidates,
+    });
+  } catch (err) {
+    console.error(
+      "Failed to load dashboard stats:",
+      err
+    );
+
+    setMessage(
+      "Failed to load dashboard stats"
+    );
+  } finally {
+    setDashboardStatsLoading(false);
+  }
+}, [getContract]);
 
   async function createInstitution() {
     let progressTimer = null;
