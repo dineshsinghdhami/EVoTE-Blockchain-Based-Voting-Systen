@@ -1,0 +1,33 @@
+cd backend
+pytest tests -v
+
+
+cd blockchain
+npx hardhat test
+
+
+Test Cases with Expected Results
+Test ID	Test Case	Expected Result
+TC-01	Check backend server	Backend returns HTTP 200 and Backend running successfully
+TC-02	Request nonce with invalid wallet address	Request rejected with HTTP 400 and Invalid wallet address
+TC-03	Request nonce with valid wallet address	HTTP 200; wallet address, signing message, nonce and expiry information returned
+TC-04	Request nonce without wallet address	HTTP 422 validation error
+TC-05	Request nonce with invalid wallet length	Request rejected with HTTP 400
+TC-06	Request nonce using wallet address without 0x	Wallet address is accepted and nonce information is returned
+TC-07	Verify wallet using invalid MetaMask signature	Signature verification rejected with HTTP 400 or 401
+TC-08	Verify wallet without active nonce	HTTP 400 with No active nonce found. Request a new nonce.
+TC-09	View transaction history without login	Access denied with HTTP 401 or 403
+TC-10	View users without login	Access denied with HTTP 401 or 403
+TC-11	Access unavailable/protected admin dashboard backend route	Request rejected or route not found
+TC-12	View candidate requests without login	Access denied with HTTP 401 or 403
+TC-13	Submit candidate request using invalid/unavailable user without authentication	Request rejected
+TC-14	Check blockchain connection through backend	HTTP 200 and blockchain connection status returned
+TC-15	Create institution without login	Access denied with HTTP 401 or 403
+TC-16	Create organization without login	Access denied with HTTP 401 or 403
+TC-17	Create election/post without login	Access denied with HTTP 401 or 403
+TC-18	Submit vote without login/valid backend route	Request rejected
+TC-19	Submit vote using invalid candidate/election	Request rejected
+TC-20	Deploy Voting smart contract	Contract deploys successfully and contract address is not zero address
+TC-21	Verify deployer is Super Admin	Deployer is registered with SuperAdmin role
+TC-22	Normal user attempts to create institution	Smart contract rejects unauthorized institution creation
+TC-23	Unregistered user attempts to vote	Smart contract rejects the vote because user is not registered
