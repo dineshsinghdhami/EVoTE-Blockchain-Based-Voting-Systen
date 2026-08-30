@@ -7,7 +7,6 @@ import requests
 from eth_account.messages import encode_defunct
 from web3 import Web3
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
 from fastapi.middleware.cors import CORSMiddleware
 from blockchain import (
     w3,
@@ -44,20 +43,13 @@ from models import (
 )
 from schemas import (
     GaslessRequestPrepare,
-    UserCreate,
     WalletNonceRequest,
     WalletVerifyRequest,
-    UserLogin,
     MetaMaskRegisterRequest,
-    MetaMaskRegisterOTPVerify,
     GaslessRelayRequest,
     CandidateRequestCreate,
     VoteCreate,
-    VerifyRegisterOTP,
-    ForgotPasswordRequest,
-    ResetPasswordVerify,
-    CandidateProfileCreate,
-    ResendOTP
+    CandidateProfileCreate
 )
 from blockchain import vote_blockchain
 from blockchain import add_candidate_blockchain
@@ -67,15 +59,12 @@ from blockchain import reject_candidate_request_blockchain
 from blockchain import create_institution_blockchain
 from blockchain import create_post_blockchain
 from auth import (
-    hash_password,
-    verify_password,
     create_access_token,
     get_current_user,
     require_admin,
 )
 from blockchain import request_candidate_blockchain
 import os
-import random
 import smtplib
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
@@ -91,7 +80,6 @@ load_dotenv()
 
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
-pending_registrations = {}
 
 os.makedirs("uploads/profiles", exist_ok=True)
 
@@ -119,72 +107,8 @@ def get_db():
         yield db
     finally:
         db.close()
-def generate_otp():
-    return str(random.randint(100000, 999999))
 
 
-def send_email_otp(to_email: str, subject: str, otp: str):
-    msg = EmailMessage()
-
-    msg["Subject"] = subject
-    msg["From"] = f"EVoTE <{EMAIL_USER}>"
-    msg["To"] = to_email
-
-    msg.set_content(f"""
-Hello,
-
-Your EVoTE OTP code is: {otp}
-
-This code is valid for 5 minutes.
-
-Do not share this code with anyone.
-
-EVoTE
-""")
-
-    html = f"""
-<!DOCTYPE html>
-<html>
-<body style="margin:0; padding:20px; background:#f5f5f5; font-family:Arial,sans-serif;">
-  <div style="max-width:500px; margin:auto; background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.10);">
-    
-    <div style="background:linear-gradient(135deg,#2563eb,#1d4ed8); padding:28px 20px; text-align:center; color:white;">
-      <h1 style="margin:0; font-size:26px;">EVoTE ⬢</h1>
-      <p style="margin:6px 0 0; font-size:13px; opacity:0.9;">Blockchain Voting Platform</p>
-    </div>
-
-    <div style="padding:28px;">
-      <h2 style="margin:0 0 12px; color:#111827; font-size:20px;">Your OTP Code</h2>
-
-      <p style="color:#555; font-size:14px; line-height:1.6;">
-        Use the code below to continue with EVoTE.
-      </p>
-
-      <div style="margin:22px 0; text-align:center; background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e5e7eb;">
-        <span style="font-size:34px; font-weight:800; color:#2563eb; letter-spacing:6px;">
-          {otp}
-        </span>
-      </div>
-
-      <p style="color:#777; font-size:13px; text-align:center;">
-        This OTP is valid for 5 minutes.
-      </p>
-    </div>
-
-    <div style="background:#f8fafc; padding:16px; text-align:center; font-size:12px; color:#888; border-top:1px solid #e5e7eb;">
-      © 2026 EVoTE. This is an automated message.
-    </div>
-
-  </div>
-</body>
-</html>
-"""
-
-    msg.add_alternative(html, subtype="html")
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(EMAIL_USER, EMAIL_PASS)
-        smtp.send_message(msg)
 
 def send_election_email(
     to_email: str,
@@ -773,9 +697,6 @@ def metamask_register_start(
         pending.phone = data.phone
         pending.date_of_birth = dob
 
-        # Registration OTP is disabled
-        pending.otp = None
-        pending.otp_expires = None
 
         # Allow registration to continue directly
         pending.email_verified = True
@@ -787,8 +708,6 @@ def metamask_register_start(
             email=data.email,
             phone=data.phone,
             date_of_birth=dob,
-            otp=None,
-            otp_expires=None,
             email_verified=True
         )
 
@@ -803,49 +722,6 @@ def metamask_register_start(
         "verified": True
     }
 
-@app.post("/auth/metamask/register/verify-otp")
-def metamask_register_verify_otp(
-    data: MetaMaskRegisterOTPVerify,
-    db: Session = Depends(get_db)
-):
-    pending = (
-        db.query(PendingWalletRegistration)
-        .filter(
-            PendingWalletRegistration.email
-            == data.email
-        )
-        .first()
-    )
-
-    if not pending:
-        raise HTTPException(
-            status_code=404,
-            detail="Pending registration not found"
-        )
-
-    if pending.otp_expires < datetime.utcnow():
-        raise HTTPException(
-            status_code=400,
-            detail="OTP has expired. Please request a new OTP."
-        )
-
-    if pending.otp != data.otp:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid OTP"
-        )
-
-    pending.email_verified = True
-
-    db.commit()
-
-    return {
-        "verified": True,
-        "message": "Email verified successfully",
-        "wallet_address": pending.wallet_address,
-        "email": pending.email,
-        "full_name": pending.full_name
-    }
 
 @app.post("/auth/metamask/register/prepare-blockchain")
 def prepare_blockchain_registration(
@@ -2440,8 +2316,6 @@ def relay_blockchain_registration(
             profile_picture=None,
             is_active=True,
             is_verified=True,
-            register_otp=None,
-            register_otp_expires=None
         )
 
         db.add(new_user)
@@ -2622,8 +2496,6 @@ def relay_blockchain_registration(
         profile_picture=None,
         is_active=True,
         is_verified=True,
-        register_otp=None,
-        register_otp_expires=None
     )
 
     db.add(new_user)
@@ -2686,222 +2558,6 @@ def relay_blockchain_registration(
         }
     }
 
-@app.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    if user.password != user.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
-    existing_user = db.query(User).filter(
-        or_(
-            User.username == user.username,
-            User.email == user.email,
-            User.phone == user.phone
-        )
-    ).first()
-
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username, email, or phone already exists")
-
-    otp = generate_otp()
-
-    pending_registrations[user.email] = {
-        "username": user.username,
-        "full_name": user.full_name,
-        "email": user.email,
-        "phone": user.phone,
-        "password": user.password,
-        "otp": otp,
-        "expires": datetime.utcnow() + timedelta(minutes=5)
-    }
-
-    send_email_otp(user.email, "Your EVoTE OTP Code", otp)
-
-    return {
-        "message": "OTP sent to email. Verify OTP to complete registration.",
-        "email": user.email
-    }
-
-@app.post("/verify-register-otp")
-def verify_register_otp(data: VerifyRegisterOTP, db: Session = Depends(get_db)):
-    pending_user = pending_registrations.get(data.email)
-
-    if not pending_user:
-        raise HTTPException(status_code=404, detail="No pending registration found")
-
-    if pending_user["otp"] != data.otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    if datetime.utcnow() > pending_user["expires"]:
-        del pending_registrations[data.email]
-        raise HTTPException(status_code=400, detail="OTP expired. Please register again")
-
-    existing_user = db.query(User).filter(
-        or_(
-            User.username == pending_user["username"],
-            User.email == pending_user["email"],
-            User.phone == pending_user["phone"]
-        )
-    ).first()
-
-    if existing_user:
-        del pending_registrations[data.email]
-        raise HTTPException(status_code=400, detail="Username, email, or phone already exists")
-
-    new_user = User(
-        username=pending_user["username"],
-        full_name=pending_user["full_name"],
-        email=pending_user["email"],
-        phone=pending_user["phone"],
-        password_hash=hash_password(pending_user["password"]),
-        role="voter",
-        is_verified=True,
-        register_otp=None,
-        register_otp_expires=None
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    del pending_registrations[data.email]
-
-    return {"message": "Email verified and registration completed successfully"}
-
-@app.post("/resend-register-otp")
-def resend_register_otp(data: ResendOTP):
-    pending_user = pending_registrations.get(data.email)
-
-    if not pending_user:
-        raise HTTPException(status_code=404, detail="No pending registration found")
-
-    otp = generate_otp()
-
-    pending_user["otp"] = otp
-    pending_user["expires"] = datetime.utcnow() + timedelta(minutes=5)
-
-    send_email_otp(data.email, "Your New EVoTE OTP Code", otp)
-
-    return {"message": "OTP resent successfully"}
-
-@app.post("/forgot-password")
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Email not found")
-
-    otp = generate_otp()
-
-    user.reset_otp = otp
-    user.reset_otp_expires = datetime.utcnow() + timedelta(minutes=5)
-
-    db.commit()
-
-    send_email_otp(user.email, "Reset Your EVoTE Password", otp)
-
-    return {"message": "Password reset OTP sent to email"}
-
-
-@app.post("/resend-reset-otp")
-def resend_reset_otp(data: ResendOTP, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Email not found")
-
-    otp = generate_otp()
-
-    user.reset_otp = otp
-    user.reset_otp_expires = datetime.utcnow() + timedelta(minutes=5)
-
-    db.commit()
-
-    send_email_otp(user.email, "Your New Password Reset OTP", otp)
-
-    return {"message": "OTP resent successfully"}
-
-@app.post("/reset-password")
-def reset_password(data: ResetPasswordVerify, db: Session = Depends(get_db)):
-    if data.new_password != data.confirm_password:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
-    user = db.query(User).filter(User.email == data.email).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if user.reset_otp != data.otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    if not user.reset_otp_expires or datetime.utcnow() > user.reset_otp_expires:
-        raise HTTPException(status_code=400, detail="OTP expired")
-
-    user.password_hash = hash_password(data.new_password)
-    user.is_verified = True
-    user.register_otp = None
-    user.register_otp_expires = None
-    user.reset_otp = None
-    user.reset_otp_expires = None
-
-    db.commit()
-
-    return {"message": "Password reset successfully"}
-
-
-@app.post("/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(
-        or_(
-            User.username == user.username_or_email,
-            User.email == user.username_or_email
-        )
-    ).first()
-
-    if not db_user:
-        raise HTTPException(status_code=400, detail="Invalid username/email or password")
-
-    if not verify_password(user.password, db_user.password_hash):
-        raise HTTPException(status_code=400, detail="Invalid username/email or password")
-    
-    if not db_user.is_verified:
-        raise HTTPException(status_code=403, detail="Please verify your email first")
-    
-    if not db_user.is_active:
-        raise HTTPException(
-        status_code=403,
-        detail="Your account has been disabled"
-    )  
-      
-    
-    
-
-    token = create_access_token({
-    "user_id": db_user.id,
-    "role": db_user.role,
-    "wallet_address": db_user.wallet_address
-})
-
-    return {
-        "message": "Login successful",
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-    "id": db_user.id,
-    "username": db_user.username,
-    "full_name": db_user.full_name,
-    "email": db_user.email,
-    "phone": db_user.phone,
-    "role": db_user.role,
-    "wallet_address": db_user.wallet_address,
-    "profile_picture": db_user.profile_picture,
-    "date_of_birth": (
-        db_user.date_of_birth.isoformat()
-        if db_user.date_of_birth
-        else None
-    ),
-    "is_active": db_user.is_active
-}
-    }
 
 
 @app.get("/users")

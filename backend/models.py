@@ -41,10 +41,7 @@ class User(Base):
         default=True
     )
     is_verified = Column(Boolean, default=False)
-    register_otp = Column(String, nullable=True)
-    register_otp_expires = Column(DateTime, nullable=True)
-    reset_otp = Column(String, nullable=True)
-    reset_otp_expires = Column(DateTime, nullable=True)
+    
 
 class CandidateRequest(Base):
     __tablename__ = "candidate_requests"
@@ -198,18 +195,9 @@ class PendingWalletRegistration(Base):
         nullable=False
     )
 
-    otp = Column(
-        String,
-        nullable=True
-    )
-
-    otp_expires = Column(
-        DateTime,
-        nullable=True
-    )
     email_verified = Column(
-    Boolean,
-    default=False
+        Boolean,
+        default=True
     )
 
 
