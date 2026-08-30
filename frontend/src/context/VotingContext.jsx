@@ -935,11 +935,36 @@ export function VotingProvider({ children }) {
   // =====================================================
 
   function logout() {
-    localStorage.clear();
+  localStorage.removeItem(
+    "token"
+  );
 
-    window.location.href =
-      "/";
-  }
+  localStorage.removeItem(
+    "access_token"
+  );
+
+  localStorage.removeItem(
+    "user"
+  );
+
+  localStorage.removeItem(
+    "walletAddress"
+  );
+
+  localStorage.removeItem(
+    "registration_wallet"
+  );
+
+  // IMPORTANT:
+  // Keep the secure browser session wallet.
+  // Do NOT delete:
+  //
+  // evote_session_private_key
+  // evote_session_address
+
+  window.location.href =
+    "/";
+}
 
 
   // =====================================================

@@ -438,6 +438,51 @@ function revokeSessionKey() public onlyRegisteredActiveUser {
 }
 
 // =========================================================
+// UPDATE / ROTATE SESSION KEY
+// =========================================================
+
+function updateSessionKey(
+    address _newSessionKey
+)
+    public
+    onlyRegisteredActiveUser
+{
+    address sender = _msgSender();
+
+    require(
+        _newSessionKey != address(0),
+        "Invalid session key"
+    );
+
+    address oldSessionKey =
+        sessionKeys[sender];
+
+    require(
+        oldSessionKey != _newSessionKey,
+        "Session key already authorized"
+    );
+
+    sessionKeys[sender] =
+        _newSessionKey;
+
+    if (
+        oldSessionKey != address(0)
+    ) {
+        emit SessionKeyRevoked(
+            sender,
+            oldSessionKey,
+            block.timestamp
+        );
+    }
+
+    emit SessionKeyAuthorized(
+        sender,
+        _newSessionKey,
+        block.timestamp
+    );
+}
+
+// =========================================================
 // SUPERADMIN USER MANAGEMENT
 // =========================================================
 

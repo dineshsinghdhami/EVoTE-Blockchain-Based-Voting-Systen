@@ -712,21 +712,26 @@ const winner =
       );
 
       const postItem = {
-        id: Number(post.id),
-        title: post.title,
+  id: Number(post.id),
+  title: post.title,
 
-        institutionId,
-        institutionName:
-          institution.name,
+  institutionId,
+  institutionName:
+    institution.name,
 
-        organizationId,
-        organizationName:
-          organization[1],
+  organizationId,
+  organizationName:
+    organization[1],
 
-        candidateCount,
-        startDate,
-        endDate,
-      };
+  candidateCount,
+
+  seatCount: Number(
+    post.seatCount
+  ),
+
+  startDate,
+  endDate,
+};
 
       allPostListTemp.push(postItem);
 

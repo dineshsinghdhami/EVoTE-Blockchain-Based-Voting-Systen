@@ -16,6 +16,9 @@ function GlobalToast({
 
   const lowerText =
     text.toLowerCase();
+  
+  const isCentered =
+  lowerText.includes("age restriction");
 
   const isLoading =
     lowerText.includes("creating") ||
@@ -75,15 +78,22 @@ function GlobalToast({
   return (
     <div
       className={`
-        global-toast
-        ${
-          isError
-            ? "global-toast-error"
-            : isSuccess
-              ? "global-toast-success"
-              : ""
-        }
-      `}
+  global-toast
+
+  ${
+    isCentered
+      ? "global-toast-centered"
+      : ""
+  }
+
+  ${
+    isError
+      ? "global-toast-error"
+      : isSuccess
+        ? "global-toast-success"
+        : ""
+  }
+`}
     >
       <div className="global-toast-icon">
         {isLoading ? (

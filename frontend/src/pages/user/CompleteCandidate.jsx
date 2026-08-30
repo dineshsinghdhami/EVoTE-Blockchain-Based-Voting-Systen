@@ -85,6 +85,61 @@ function CompleteCandidate() {
         new ethers.Wallet(
           sessionPrivateKey
         );
+        // -------------------------------------------------
+// 4. VERIFY CURRENT SESSION KEY ON BLOCKCHAIN
+// -------------------------------------------------
+
+if (!window.ethereum) {
+  throw new Error(
+    "MetaMask provider was not found."
+  );
+}
+
+const provider =
+  new ethers.BrowserProvider(
+    window.ethereum
+  );
+
+const contract =
+  new ethers.Contract(
+    CONTRACT_ADDRESS,
+    [
+      "function sessionKeys(address) view returns (address)"
+    ],
+    provider
+  );
+
+const authorizedSessionKey =
+  await contract.sessionKeys(
+    wallet
+  );
+
+console.log(
+  "Browser session address:",
+  sessionWallet.address
+);
+
+console.log(
+  "On-chain session address:",
+  authorizedSessionKey
+);
+
+console.log(
+  "Voter wallet:",
+  wallet
+);
+
+if (
+  String(authorizedSessionKey)
+    .toLowerCase() !==
+  String(sessionWallet.address)
+    .toLowerCase()
+) {
+  throw new Error(
+    "Your browser voting session is no longer authorized. Please log out and sign in again to create a new secure session."
+  );
+}
+
 
       // -------------------------------------------------
       // 4. GET CURRENT CANDIDATE NONCE
@@ -227,11 +282,24 @@ function CompleteCandidate() {
         err
       );
 
-      setMessage(
-        err?.response?.data?.detail ||
-          err?.message ||
-          "Candidate registration failed."
-      );
+      const errorMessage =
+  err?.response?.data?.detail ||
+  err?.message ||
+  "Candidate registration failed.";
+
+if (
+  String(errorMessage).includes(
+    "Invalid session signature"
+  )
+) {
+  setMessage(
+    "Your secure voting session is no longer valid. Please log out and sign in again."
+  );
+} else {
+  setMessage(
+    errorMessage
+  );
+}
     } finally {
       setLoading(false);
     }

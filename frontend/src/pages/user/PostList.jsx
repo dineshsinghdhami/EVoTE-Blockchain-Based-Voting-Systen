@@ -27,10 +27,23 @@ function PostList({ mode }) {
   const [confirmPost, setConfirmPost] = useState(null);
 
   useEffect(() => {
-    loadPosts();
+  if (
+    mode === "request" &&
+    !user?.id
+  ) {
+    return;
+  }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instId, orgId, account]);
+  loadPosts();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [
+  instId,
+  orgId,
+  account,
+  user?.id,
+  mode,
+]);
 
   // =====================================================
   // LOAD POSTS
@@ -148,9 +161,21 @@ function PostList({ mode }) {
     }
 
     const results =
-      await Promise.all(
-        postPromises
-      );
+  await Promise.all(
+    postPromises
+  );
+
+setPosts(results);
+
+// Load saved candidate request
+// status from backend
+if (mode === "request") {
+  await loadCandidateRequestStatuses(
+    results
+  );
+}
+
+setMessage("");
 
     setPosts(results);
 
@@ -206,6 +231,55 @@ const statusRes = await axios.get(
     );
 
     return "none";
+  }
+}
+
+// =====================================================
+// LOAD ALL CANDIDATE REQUEST STATUSES
+// =====================================================
+
+async function loadCandidateRequestStatuses(postsList) {
+  if (
+    !user?.id ||
+    !Array.isArray(postsList) ||
+    postsList.length === 0
+  ) {
+    setStatusMap({});
+    return;
+  }
+
+  try {
+    const statusEntries =
+      await Promise.all(
+        postsList.map(
+          async (post) => {
+            const status =
+              await checkCandidateRequestStatus(
+                post
+              );
+
+            return [
+              post.id,
+              status,
+            ];
+          }
+        )
+      );
+
+    const newStatusMap =
+      Object.fromEntries(
+        statusEntries
+      );
+
+    setStatusMap(
+      newStatusMap
+    );
+
+  } catch (err) {
+    console.error(
+      "Failed to load candidate request statuses:",
+      err
+    );
   }
 }
 
@@ -699,7 +773,12 @@ const res = await axios.post(
           // Keep original:
           // User Request -> Admin Approve/Reject
           // =============================================
-          posts.map((post) => {
+          [...posts]
+  .sort(
+    (a, b) =>
+      Number(b.id) - Number(a.id)
+  )
+  .map((post) => {
             const registrationState =
               getCandidateRegistrationState(
                 post

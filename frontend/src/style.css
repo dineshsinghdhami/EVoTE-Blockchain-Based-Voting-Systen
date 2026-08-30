@@ -12705,3 +12705,30 @@ input:-webkit-autofill:focus {
   border-radius: 9px;
   font-weight: 700;
 }
+
+.global-toast.global-toast-centered {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+
+  transform: translate(-50%, -50%);
+
+  animation: globalToastCenteredIn 0.25s ease-out;
+}
+
+@keyframes globalToastCenteredIn {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, calc(-50% + 14px))
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}

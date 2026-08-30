@@ -847,8 +847,7 @@ function AllElections() {
                       <span>
                         Seats:{" "}
 
-                        {post.seatLimit ??
-                          "N/A"}
+                        {post.seatCount ?? "N/A"}
                       </span>
 
 

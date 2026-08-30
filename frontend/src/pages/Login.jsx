@@ -1,6 +1,40 @@
 import { useState } from "react";
 import { API_URL } from "../config";
 import { useNavigate } from "react-router-dom";
+import { ethers } from "ethers";
+
+import {
+  CONTRACT_ADDRESS,
+  CONTRACT_ABI,
+} from "../contract/contract";
+
+function getOrCreateSessionWallet() {
+  const savedPrivateKey =
+    localStorage.getItem(
+      "evote_session_private_key"
+    );
+
+  if (savedPrivateKey) {
+    return new ethers.Wallet(
+      savedPrivateKey
+    );
+  }
+
+  const sessionWallet =
+    ethers.Wallet.createRandom();
+
+  localStorage.setItem(
+    "evote_session_private_key",
+    sessionWallet.privateKey
+  );
+
+  localStorage.setItem(
+    "evote_session_address",
+    sessionWallet.address
+  );
+
+  return sessionWallet;
+}
 
 function Login() {
   const navigate = useNavigate();
@@ -111,6 +145,75 @@ function Login() {
         navigate("/register");
         return;
       }
+
+      // --------------------------------------------------
+// 7. RESTORE / AUTHORIZE BROWSER SESSION KEY
+// --------------------------------------------------
+
+if (
+  result.user?.role === "voter"
+) {
+  setStatus(
+    "Checking secure voting session..."
+  );
+
+  const sessionWallet =
+    getOrCreateSessionWallet();
+
+  const provider =
+    new ethers.BrowserProvider(
+      window.ethereum
+    );
+
+  const signer =
+    await provider.getSigner();
+
+  const contract =
+    new ethers.Contract(
+      CONTRACT_ADDRESS,
+      CONTRACT_ABI,
+      signer
+    );
+
+  const authorizedSessionKey =
+    await contract.sessionKeys(
+      wallet
+    );
+
+  console.log(
+    "Browser session:",
+    sessionWallet.address
+  );
+
+  console.log(
+    "Blockchain session:",
+    authorizedSessionKey
+  );
+
+  if (
+    String(
+      authorizedSessionKey
+    ).toLowerCase() !==
+    String(
+      sessionWallet.address
+    ).toLowerCase()
+  ) {
+    setStatus(
+      "Authorizing secure browser session in MetaMask..."
+    );
+
+    const tx =
+      await contract.updateSessionKey(
+        sessionWallet.address
+      );
+
+    setStatus(
+      "Waiting for session authorization..."
+    );
+
+    await tx.wait();
+  }
+}
 
       // --------------------------------------------------
       // 7. SAVE LOGIN SESSION
