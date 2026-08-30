@@ -1,10 +1,10 @@
 import VotingArtifact from "../../../blockchain/artifacts/contracts/Voting.sol/Voting.json";
 
 export const CONTRACT_ADDRESS =
-  "0xFb46aa6791eEf1Cb6F8f76031F5B86A04023753f";
+  "0x502437FE69B252b742Bdaa38529FA21E16C63020";
 
 export const FORWARDER_ADDRESS =
-  "0xb9443c7238FF4492f8e76401970e5413d5b026E7";
+  "0x5D06293E049495CD35E1Ff429EA7d09811Cc939a";
 
 export const SEPOLIA_CHAIN_ID = 11155111;
 
