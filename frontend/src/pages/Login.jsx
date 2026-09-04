@@ -68,6 +68,20 @@ function Login() {
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
+      const chainId = await window.ethereum.request({
+  method: "eth_chainId",
+});
+
+if (chainId !== "0xaa36a7") {
+  await window.ethereum.request({
+    method: "wallet_switchEthereumChain",
+    params: [
+      {
+        chainId: "0xaa36a7",
+      },
+    ],
+  });
+}
 
       if (!accounts || accounts.length === 0) {
         throw new Error("No MetaMask account selected.");

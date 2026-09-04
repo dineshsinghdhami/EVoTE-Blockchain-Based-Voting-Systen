@@ -93,6 +93,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://10.116.82.29:5173",
         "https://evote-ivory.vercel.app",
         "https://evote-git-main-thecodingdhamis-projects.vercel.app",
     ],
