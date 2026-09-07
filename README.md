@@ -35,14 +35,6 @@ The current project is configured around the **Ethereum Sepolia testnet** and su
 - Results and transaction views
 - Admin profile
 
-### 👑 SuperAdmin
-
-- SuperAdmin role is initialized by the `Voting` contract deployer
-- Promote registered users to Admin
-- Remove Admin privileges
-- Activate/deactivate registered users
-- Perform privileged institution and election administration
-
 ### # Blockchain
 
 - Solidity `Voting` smart contract
@@ -86,7 +78,7 @@ The database stores application metadata and supporting records, while critical 
 
 ---
 
-## 🧰 Technology Stack
+## # Technology Stack
 
 | Layer | Technologies |
 |---|---|
@@ -101,7 +93,7 @@ The database stores application metadata and supporting records, while critical 
 
 ---
 
-## 📁 Project Structure
+## # Project Structure
 
 ```text
 blockchain-voting-system/
