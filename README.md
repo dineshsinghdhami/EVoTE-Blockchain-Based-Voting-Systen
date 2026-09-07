@@ -1,4 +1,4 @@
-# 🗳️ EVoTE — Blockchain-Based Transparent Voting System
+# # EVoTE — Blockchain-Based Transparent Voting System
 
 EVoTE is a full-stack electronic voting platform that combines a **React + Vite** frontend, **FastAPI + PostgreSQL** backend, and **Ethereum smart contracts** to provide transparent, tamper-resistant election workflows.
 
@@ -8,9 +8,9 @@ The current project is configured around the **Ethereum Sepolia testnet** and su
 
 ---
 
-## ✨ Current Features
+## # Current Features
 
-### 👤 Voter
+### # Voter
 
 - MetaMask wallet-based registration and authentication
 - Wallet nonce/signature verification
@@ -24,7 +24,7 @@ The current project is configured around the **Ethereum Sepolia testnet** and su
 - View election results when the smart contract makes them available
 - View personal blockchain/application transaction history
 
-### 🛡️ Admin
+### # Admin
 
 - Admin dashboard
 - Institution and organization management
@@ -43,7 +43,7 @@ The current project is configured around the **Ethereum Sepolia testnet** and su
 - Activate/deactivate registered users
 - Perform privileged institution and election administration
 
-### ⛓️ Blockchain
+### # Blockchain
 
 - Solidity `Voting` smart contract
 - OpenZeppelin `ERC2771Context` trusted-forwarder support
@@ -60,7 +60,7 @@ The current project is configured around the **Ethereum Sepolia testnet** and su
 
 ---
 
-## 🏗️ Architecture
+## # Architecture
 
 ```text
 ┌──────────────────────────────────────────────┐
