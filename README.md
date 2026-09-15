@@ -72,19 +72,38 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ## # Academic Context
 
-I developed EVoTE at the **National Academy of Science and Technology (NAST), affiliated with Pokhara University**.
+EVoTE was submitted as a **Final-Year Computer Engineering group project** at the **National Academy of Science and Technology (NAST), affiliated with Pokhara University**.
 
-Through this project, I worked with:
+The official project team consisted of:
 
-* Full-stack development
-* Wallet-based authentication
-* Role-based access control
-* Solidity smart contracts
-* PostgreSQL integration
-* Gasless blockchain transactions
-* Backend and smart-contract testing
+* **Dinesh Singh Dhami** : 22070203
+* **Dilli Raj Bhatta** : 22070202
+* **Dipak Shyada** : 22070205
+* **Samir Bist** : 22070230
 
-EVoTE is an academic prototype running on the Ethereum Sepolia testnet.
+---
+
+## # My Contribution
+
+I am **Dinesh Singh Dhami**, and I personally carried out the complete development of EVoTE from the beginning of the project to its final submission.
+
+Although the project was officially submitted as a four-member group project, the complete practical and technical work was carried out by me.
+
+My work included:
+
+* Project planning, requirement analysis, and system design
+* Frontend, backend, database, and dashboard development
+* MetaMask, JWT, and wallet-based authentication
+* Solidity smart contracts and Ethereum Sepolia integration
+* Backend relayer, gasless transactions, and election validation logic
+* Candidate registration and complete voting workflow
+* Testing, debugging, and full system integration
+* Project documentation, diagrams, final report, and README
+* Final presentation/PPT and submission preparation
+
+In short, I handled the **complete project lifecycle - from planning and implementation to testing, documentation, presentation, and final submission**.
+
+I also used **AI tools as development assistants** for brainstorming, debugging support, code explanations, and documentation refinement. I reviewed, modified, tested, and integrated the final implementation myself.
 
 ---
 
@@ -128,7 +147,7 @@ For collaboration, educational use, research discussion, or licensing inquiries,
 
 ---
 
-## # Author
+## # Project Owner
 
 **Dinesh Singh Dhami**
 
