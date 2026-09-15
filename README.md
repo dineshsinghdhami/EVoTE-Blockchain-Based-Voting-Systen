@@ -135,6 +135,12 @@ This project is **proprietary**, with **all rights reserved**.
 
 Reuse, modification, redistribution, publishing, or hosting requires prior written permission. See [LICENSE.md](LICENSE.md) for details.
 
+The EVoTE project is publicly visible for **demonstration, evaluation, and portfolio purposes**, not for unrestricted reuse.
+
+Do not assume that publicly accessible source code is free to copy, modify, republish, or redistribute.
+
+If you wish to use any original part of this project, **request permission first**.
+
 Third-party libraries and dependencies retain their respective licenses.
 
 ---
