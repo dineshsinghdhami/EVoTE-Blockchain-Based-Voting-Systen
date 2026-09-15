@@ -1,4 +1,4 @@
-# EVoTE — Blockchain-Based Voting System
+# # EVoTE : Blockchain-Based Voting System
 
 ![License](https://img.shields.io/badge/license-Proprietary-red)
 ![Python](https://img.shields.io/badge/Python-Backend-blue)
@@ -16,7 +16,7 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ---
 
-## Features
+## # Features
 
 * MetaMask wallet registration and login
 * Wallet signature verification with JWT authentication
@@ -35,7 +35,7 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ---
 
-## Tech Stack
+## # Tech Stack
 
 * **Frontend:** React, Vite, Material UI, Recharts
 * **Backend:** Python, FastAPI
@@ -48,7 +48,7 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ---
 
-## Project Structure
+## # Project Structure
 
 | Path          | Purpose                                            |
 | ------------- | -------------------------------------------------- |
@@ -59,7 +59,7 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ---
 
-## Voting Workflow
+## # Voting Workflow
 
 1. Register and log in using MetaMask.
 2. Select an institution, organization, and election.
@@ -70,7 +70,7 @@ I built it using **React, FastAPI, PostgreSQL, Solidity, and Ethereum** to manag
 
 ---
 
-## Academic Context
+## # Academic Context
 
 I developed EVoTE at the **National Academy of Science and Technology (NAST), affiliated with Pokhara University**.
 
@@ -88,7 +88,7 @@ EVoTE is an academic prototype running on the Ethereum Sepolia testnet.
 
 ---
 
-## What I Learned
+## # What I Learned
 
 Building EVoTE gave me practical experience in combining **full-stack development with blockchain technology**.
 
@@ -110,7 +110,7 @@ One of the most interesting parts of the project was connecting the **React fron
 
 ---
 
-## License
+## # License
 
 This project is **proprietary**, with **all rights reserved**.
 
@@ -120,7 +120,7 @@ Third-party libraries and dependencies retain their respective licenses.
 
 ---
 
-## Contributions
+## # Contributions
 
 Public contributions are not currently accepted.
 
@@ -128,7 +128,7 @@ For collaboration, educational use, research discussion, or licensing inquiries,
 
 ---
 
-## Author
+## # Author
 
 **Dinesh Singh Dhami**
 
